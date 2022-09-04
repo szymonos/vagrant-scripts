@@ -1,0 +1,169 @@
+# *Variables
+
+box = 'generic/fedora36'
+provider = 'virtualbox'
+vm_name = 'Vagrant'
+memory = 8192
+cpu = 4
+ip_addr  = '192.168.56.27'
+
+
+# *Scripts
+
+$script_install_root_ca = <<-SCRIPT
+cat <<EOF >/etc/pki/ca-trust/source/anchors/pg_root_ca.crt
+-----BEGIN CERTIFICATE-----
+MIIDhDCCAmygAwIBAgIEWffYtDANBgkqhkiG9w0BAQsFADBiMRMwEQYKCZImiZPy
+LGQBGRYDY29tMRIwEAYKCZImiZPyLGQBGRYCUEcxIjAgBgNVBAsTGUNlcnRpZmlj
+YXRpb24gQXV0aG9yaXRpZXMxEzARBgNVBAMTClBHIFJvb3QgQ0EwHhcNMjEwODIw
+MjEyMjAyWhcNMzAxMTIwMjE1MjAyWjBiMRMwEQYKCZImiZPyLGQBGRYDY29tMRIw
+EAYKCZImiZPyLGQBGRYCUEcxIjAgBgNVBAsTGUNlcnRpZmljYXRpb24gQXV0aG9y
+aXRpZXMxEzARBgNVBAMTClBHIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+DwAwggEKAoIBAQCvzYvNn6TTw4aMB9/S0eDcxfKQBub10ce+ThkBqfJh3TvM4QWE
+dJCbAriKdu7mC8LWiL1WWOJ1nELseounY/XD+pmcvjN8zdbQu96VdpzVNAAkuUIG
+XncMKR1rs4iYseEDQTiYAm/sGQp/7E/6IPfqII5ijPARpn2LS4+EljpuJu93IrLi
+raLcX6JwLCpW8+Donmdagr2nc7G2a4XpM5Ym4b8Cur1wAyXA8ofGbJkAzHFtl64z
+MTytTSGgxuVJhit3exXo0W4EbyX7PiPklo0zZOaAQUZg+fczVPc7dDQ4UHO4Cdw3
+xPD2p+aY2b1ALg+O5GQ8jBA0ESKtnEAi9pZVAgMBAAGjQjBAMA4GA1UdDwEB/wQE
+AwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBSJ5rbVwA1YQU1YK5Mzw0mm
+Adk86zANBgkqhkiG9w0BAQsFAAOCAQEALCXLR6Jvd7uZiBMz0KUBPYt0I2D1nSkT
+AkAo8UehPcWQnobXRE2v0fPG6RFSIx52Ve24VxI09Celk1rmoRz0ypbuLpxR43ZZ
+sgZ97BQsuSXQ33Gwmy8S88MNSQh4fGkw8j9M/qLxXR4PgsGZZt6a2SlILo1meMyB
+7eFC4qWru6xdLhus1HkMEwK6gvGo6MuENfQE5aifJYHpfjmHQkqKDeK4mK33ec8F
+6rHi5MT1Y8sb2a1lhxIX9msEE5R9IDfobHmVZUcBV4pDS27h5Np6O3vpAmsmyRRp
+HAcIb1YGBLnhP55WZtsBBdmzCNMPbmdBRATCIaJ3+T/y6TZFzo7gkA==
+-----END CERTIFICATE-----
+EOF
+update-ca-trust
+SCRIPT
+
+$script_upgrade_packages = <<-SCRIPT
+dnf upgrade -y
+SCRIPT
+
+$script_install_packages = <<-SCRIPT
+dnf install -y @development-tools
+dnf install -y 'dnf-command(offline-upgrade)' bash-completion jq nano npm dotnet
+dnf clean all -y
+SCRIPT
+
+$script_install_omp = <<-SCRIPT
+REL=$(curl -sk https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+if type oh-my-posh &>/dev/null; then
+  OMP_VER=$(oh-my-posh version)
+  if [ "$REL" == "$OMP_VER" ]; then
+    echo "The latest oh-my-posh v$REL is already installed!"
+    exit 0
+  fi
+fi
+echo "Installing oh-my-posh v$REL"
+curl -Lk https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
+chmod +x /usr/local/bin/oh-my-posh
+SCRIPT
+
+$script_install_pwsh = <<-SCRIPT
+REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+if type pwsh &>/dev/null; then
+  PWSH_VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
+  if [ "$REL" == "$PWSH_VER" ]; then
+    echo "The latest PowerShell v$REL is already installed!"
+    exit 0
+  fi
+fi
+echo "Installing PowerShell v$REL"
+dnf install -y https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-1.rh.x86_64.rpm
+SCRIPT
+
+$script_install_pwsh_modules = <<-SCRIPT
+pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Force'
+cat <<EOF | pwsh -nop -c -
+Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted && \
+Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Quiet && \
+Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Quiet && \
+Write-Host 'Enable PSAnsiRenderingFileInfo' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo
+EOF
+SCRIPT
+
+$script_install_docker = <<-SCRIPT
+dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+dnf install -y docker-ce docker-ce-cli containerd.io
+usermod -a -G docker vagrant
+systemctl enable --now docker.service
+systemctl enable --now containerd.service
+SCRIPT
+
+$script_install_kubectl = <<-SCRIPT
+cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+dnf install -y kubectl
+SCRIPT
+
+$script_install_helm = <<-SCRIPT
+curl -fsSLk -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh && rm -f get_helm.sh
+SCRIPT
+
+$script_install_k3d = <<-SCRIPT
+curl -sk https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+SCRIPT
+
+$script_install_k9s = <<-SCRIPT
+REL=$(curl -sk "https://api.github.com/repos/derailed/k9s/releases/latest" | grep -Po '"tag_name": *"v\\K.*?(?=")')
+curl -sLOk --output-dir /tmp "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_x86_64.tar.gz"
+mkdir -p /opt/k9s
+tar zxf /tmp/k9s_Linux_x86_64.tar.gz -C /opt/k9s && rm -f /tmp/k9s_Linux_x86_64.tar.gz
+[ -f /usr/bin/k9s ] || ln -s /opt/k9s/k9s /usr/bin/k9s
+SCRIPT
+
+$script_install_pwsh_kubectl_autocompletion = <<-SCRIPT
+pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE'
+SCRIPT
+
+
+# *Vagrant VM configuration
+
+Vagrant.configure("2") do |config|
+  config.vm.box = box
+  config.vm.provider provider
+  config.vm.define vm_name do |node|
+    node.vm.provider provider do |vb|
+      vb.customize [
+        "modifyvm", :id,
+        "--cableconnected1", "on",
+        "--paravirtprovider", "hyperv"
+      ]
+      vb.name = vm_name
+      vb.memory = memory
+      vb.cpus = cpu
+    end
+    # node.vm.network "private_network", ip: ip_addr, hostname: true
+    # run scripts
+    # node.vm.provision "shell", privileged: true, name: "installing Root CA...", inline: $script_install_root_ca
+    node.vm.provision "shell", privileged: true, name: "upgrading packages...", inline: $script_upgrade_packages, reboot: true
+    node.vm.provision "shell", privileged: true, name: "installing packages...", inline: $script_install_packages
+    node.vm.provision "shell", privileged: true, name: "installing docker...", inline: $script_install_docker
+    node.vm.provision "shell", privileged: true, name: "installing kubectl...", inline: $script_install_kubectl
+    node.vm.provision "shell", privileged: true, name: "installing k3d...", inline: $script_install_k3d
+    node.vm.provision "shell", privileged: true, name: "installing k9s...", inline: $script_install_k9s
+    node.vm.provision "shell", privileged: true, name: "installing oh-my-posh...", inline: $script_install_omp
+    node.vm.provision "shell", privileged: true, name: "installing PowerShell...", inline: $script_install_pwsh
+    node.vm.provision "shell", privileged: false, name: "installing PS modules...", inline: $script_install_pwsh_modules
+    node.vm.provision "shell", privileged: false, name: "installing PS kubectl autocompletion...", inline: $script_install_pwsh_kubectl_autocompletion
+    node.vm.provision "shell", privileged: false, name: "installing helm...", inline: $script_install_helm
+    # copy files
+    node.vm.provision "file", source: ".config/.mytheme.omp.json", destination: "~/.mytheme.omp.json"
+    node.vm.provision "file", source: ".config/.profile.ps1", destination: "~/.config/powershell/profile.ps1"
+    node.vm.provision "file", source: ".config/.bashrc", destination: "~/.bashrc"
+    node.vm.provision "file", source: ".config/.bash_aliases", destination: "~/.bash_aliases"
+    node.vm.provision "file", source: ".config/.kubectl_aliases", destination: "~/.kubectl_aliases"
+    node.vm.provision "file", source: ".config/.kubectl_functions.ps1", destination: "~/.kubectl_functions.ps1"
+  end
+end
