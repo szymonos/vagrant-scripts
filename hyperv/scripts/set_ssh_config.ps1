@@ -29,16 +29,16 @@ Host $HostName
 
 Write-Host "Adding $HostName to ssh config..."
 if (Select-String -Pattern "HostName $IpAddress" -Path $sshConfig) {
-    [IO.File]::ReadAllText($sshConfig) `
-        -replace "Host[^\n]+\n[^\n]+$IpAddress\n[\s\S]+?(?=(\nHost|\z))", $vagrantConfig `
-    | Out-File $sshConfig -Encoding utf8 -NoNewline
+    $content = [IO.File]::ReadAllText($sshConfig) -replace "Host[^\n]+\n[^\n]+$IpAddress\n[\s\S]+?(?=(\nHost|\z))", $vagrantConfig
+    [IO.File]::WriteAllLines($sshConfig, $content)
 } else {
     Add-Content -Value $vagrantConfig -Path $sshConfig
 }
 
 Write-Host 'Cleaning ssh known_hosts file...'
 if (Select-String -Pattern "^$IpAddress" -Path $knownHosts) {
-    [IO.File]::ReadAllLines($knownHosts) -notmatch "^$IpAddress" | Out-File $knownHosts -Encoding utf8
+    $content = [IO.File]::ReadAllLines($knownHosts) -notmatch "^$IpAddress"
+    [IO.File]::WriteAllLines($knownHosts, $content)
 }
 
 Write-Host 'Adding fingerprint to ssh known_hosts file...'
