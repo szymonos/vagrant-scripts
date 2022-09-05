@@ -49,8 +49,8 @@ function grep { $input | & /usr/bin/env grep --color=auto $args }
 #endregion
 
 # import kubectl functions
-if (Test-Path '~/.kubectl_functions.ps1') {
-    . '~/.kubectl_functions.ps1'
+if ((Get-Command kubectl -ErrorAction SilentlyContinue) -and (Test-Path '/opt/microsoft/powershell/7/kubectl_functions.ps1')) {
+    . '/opt/microsoft/powershell/7/kubectl_functions.ps1'
 }
 #endregion
 
@@ -71,4 +71,6 @@ Write-Host ("$($PSStyle.Foreground.BrightWhite){0} | PowerShell $($PSVersionTabl
         -f (Select-String -Pattern '^PRETTY_NAME=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'"))
 #endregion
 
-oh-my-posh --init --shell pwsh --config ~/.mytheme.omp.json | Invoke-Expression
+if ((Get-Command oh-my-posh -ErrorAction SilentlyContinue) -and (Test-Path '/etc/profile.d/theme.omp.json')) {
+    oh-my-posh --init --shell pwsh --config /etc/profile.d/theme.omp.json | Invoke-Expression
+}

@@ -9,7 +9,7 @@ nat_net   = '192.168.121.0/24'
 ip_addr   = '192.168.121.88'
 dns       = '9.9.9.9,149.112.112.112'
 # vm configuration
-memory    = 8192
+memory    = 6144
 cpu       = 4
 # calculate variables
 hostname  = vm_name.downcase
@@ -20,7 +20,6 @@ script_configure_static_ip = <<-SCRIPT
 nmcli con mod eth0 ipv4.addresses #{ip_addr}/#{prefix}
 nmcli con mod eth0 ipv4.gateway #{switch_ip}
 nmcli con mod eth0 ipv4.dns #{dns}
-nmcli con mod eth0 ipv4.never-default no
 nmcli con mod eth0 ipv4.method manual
 SCRIPT
 
@@ -29,10 +28,13 @@ dnf upgrade -y
 SCRIPT
 
 script_install_packages = <<-SCRIPT
-dnf install -y @development-tools bash-completion openssl sassc
+dnf install -y \\
+  @development-tools \\
+  bash-completion \\
+  openssl jq sassc
 SCRIPT
 
-script_install_omp = <<-SCRIPT
+script_omp = <<-SCRIPT
 REL=$(curl -s https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
 if type oh-my-posh &>/dev/null; then
   OMP_VER=$(oh-my-posh version)
@@ -41,12 +43,12 @@ if type oh-my-posh &>/dev/null; then
     exit 0
   fi
 fi
-echo "Installing oh-my-posh v$REL"
+echo "Install oh-my-posh v$REL"
 curl -L https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
 chmod +x /usr/local/bin/oh-my-posh
 SCRIPT
 
-script_install_pwsh = <<-SCRIPT
+script_pwsh = <<-SCRIPT
 REL=$(curl -s https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
 if type pwsh &>/dev/null; then
   PWSH_VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
@@ -55,11 +57,11 @@ if type pwsh &>/dev/null; then
     exit 0
   fi
 fi
-echo "Installing PowerShell v$REL"
+echo "Install PowerShell v$REL"
 dnf install -y https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-1.rh.x86_64.rpm
 SCRIPT
 
-script_install_pwsh_modules = <<-SCRIPT
+script_pwsh_modules = <<-SCRIPT
 pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
 cat <<'EOF' | pwsh -nop -c -
 Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted && \
@@ -67,12 +69,12 @@ Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope Al
 Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet && \
 Write-Host 'Enable PSAnsiRenderingFileInfo' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue
 EOF
-type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE'
+type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE' || true
 SCRIPT
 
 script_user_profile = <<-SCRIPT
 pwsh -nop -c 'Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue'
-type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE'
+type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE' || true
 cat >> ~/.bashrc <<'EOF'
 # initialize oh-my-posh prompt
 if type oh-my-posh &>/dev/null; then
@@ -81,7 +83,7 @@ fi
 EOF
 SCRIPT
 
-script_install_docker = <<-SCRIPT
+script_docker = <<-SCRIPT
 dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
 dnf install -y docker-ce docker-ce-cli containerd.io
 usermod -a -G docker vagrant
@@ -89,21 +91,21 @@ systemctl enable --now docker.service
 systemctl enable --now containerd.service
 SCRIPT
 
-script_install_helm = <<-SCRIPT
+script_helm = <<-SCRIPT
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
 ./get_helm.sh && rm -f get_helm.sh
 SCRIPT
 
-script_install_minikube = <<-SCRIPT
+script_minikube = <<-SCRIPT
 dnf install -y https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm
 SCRIPT
 
-script_install_k3d = <<-SCRIPT
+script_k3d = <<-SCRIPT
 curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
 SCRIPT
 
-script_install_k9s = <<-SCRIPT
+script_k9s = <<-SCRIPT
 REL=$(curl --silent "https://api.github.com/repos/derailed/k9s/releases/latest" | grep -Po '"tag_name": *"v\\K.*?(?=")')
 curl -sLO --output-dir /tmp "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_x86_64.tar.gz"
 mkdir -p /opt/k9s
@@ -111,7 +113,7 @@ tar zxf /tmp/k9s_Linux_x86_64.tar.gz -C /opt/k9s && rm -f /tmp/k9s_Linux_x86_64.
 ln -s /opt/k9s/k9s /usr/bin/k9s
 SCRIPT
 
-script_install_kubectl = <<-SCRIPT
+script_kubectl = <<-SCRIPT
 [ -f /etc/yum.repos.d/kubernetes.repo ] || cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -127,10 +129,6 @@ else
 fi
 SCRIPT
 
-script_install_kubectl_autocompletion = <<-SCRIPT
-pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE'
-SCRIPT
-
 script_global_profile_setup = <<-SCRIPT
 mv -f /tmp/.config/bash_profile.sh /etc/profile.d/
 mv -f /tmp/.config/bash_aliases.sh /etc/profile.d/
@@ -141,7 +139,7 @@ mv -f /tmp/.config/kubectl_functions.ps1 /opt/microsoft/powershell/7/
 rm -fr /tmp/.config
 SCRIPT
 
-script_install_gnome = <<-SCRIPT
+script_gnome = <<-SCRIPT
 dnf group install -y gnome-desktop
 dnf install -y gnome-tweaks gnome-extensions-app
 systemctl set-default graphical.target
@@ -160,14 +158,14 @@ gsettings set org.gnome.desktop.peripherals.keyboard delay 250
 gsettings set org.gnome.desktop.session idle-delay 0
 SCRIPT
 
-script_install_edge = <<-SCRIPT
+script_edge = <<-SCRIPT
 rpm --import https://packages.microsoft.com/keys/microsoft.asc
 dnf config-manager --add-repo https://packages.microsoft.com/yumrepos/edge
 mv /etc/yum.repos.d/packages.microsoft.com_yumrepos_edge.repo /etc/yum.repos.d/microsoft-edge-stable.repo
 dnf install -y microsoft-edge-stable
 SCRIPT
 
-script_install_xrdp = <<-SCRIPT
+script_xrdp = <<-SCRIPT
 # Load the Hyper-V kernel module
 if ! [ -f "/etc/modules-load.d/hv_sock.conf" ] || [ "$(cat /etc/modules-load.d/hv_sock.conf | grep hv_sock)" = ""  ]; then
   echo "hv_sock" | sudo tee -a /etc/modules-load.d/hv_sock.conf > /dev/null
@@ -179,6 +177,7 @@ firewall-cmd --add-port=3389/tcp
 firewall-cmd --runtime-to-permanent
 SCRIPT
 
+# *VM provisioning
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -226,28 +225,28 @@ Vagrant.configure("2") do |config|
       h.vmname = vm_name
     end
 
-    node.vm.provision "shell", name: "upgrading system...", inline: script_upgrade_packages
-    node.vm.provision "shell", name: "configuring static ip", inline: script_configure_static_ip
+    node.vm.provision "shell", name: "upgrade system...", inline: script_upgrade_packages
+    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
     # reload with new IP
     node.vm.provision :reload
     # continue installing features
-    node.vm.provision "shell", name: "installing packages...", inline: script_install_packages
-    node.vm.provision "shell", name: "installing oh-my-posh...", inline: script_install_omp
-    node.vm.provision "shell", name: "installing PowerShell...", inline: script_install_pwsh
-    node.vm.provision "shell", name: "installing docker...", inline: script_install_docker
-    node.vm.provision "shell", name: "installing kubectl...", inline: script_install_kubectl
-    node.vm.provision "shell", name: "installing helm...", inline: script_install_helm, privileged: false
-    node.vm.provision "shell", name: "installing minikube...", inline: script_install_minikube
-    node.vm.provision "shell", name: "installing k3d...", inline: script_install_k3d
-    node.vm.provision "shell", name: "installing k9s...", inline: script_install_k9s
-    node.vm.provision "shell", name: "installing PS modules...", inline: script_install_pwsh_modules
-    node.vm.provision "shell", name: "setting up user profile...", inline: script_user_profile, privileged: false
+    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
+    node.vm.provision "shell", name: "install oh-my-posh...", inline: script_omp
+    node.vm.provision "shell", name: "install PowerShell...", inline: script_pwsh
+    node.vm.provision "shell", name: "install docker...", inline: script_docker
+    node.vm.provision "shell", name: "install kubectl...", inline: script_kubectl
+    node.vm.provision "shell", name: "install helm...", inline: script_helm, privileged: false
+    node.vm.provision "shell", name: "install minikube...", inline: script_minikube
+    node.vm.provision "shell", name: "install k3d...", inline: script_k3d
+    node.vm.provision "shell", name: "install k9s...", inline: script_k9s
+    node.vm.provision "shell", name: "install PS modules...", inline: script_pwsh_modules
+    node.vm.provision "shell", name: "set up user profile...", inline: script_user_profile, privileged: false
     node.vm.provision "file", source: ".config", destination: "/tmp/"
-    node.vm.provision "shell", name: "setting up global profile...", inline: script_global_profile_setup
-    node.vm.provision "shell", name: "installing Gnome...", inline: script_install_gnome
-    node.vm.provision "shell", name: "setting up Gnome...", inline: script_setup_gnome, privileged: false
-    node.vm.provision "shell", name: "installing Gnome...", inline: script_install_edge
-    node.vm.provision "shell", name: "installing xrdp...", inline: script_install_xrdp, reboot: true
+    node.vm.provision "shell", name: "set up global profile...", inline: script_global_profile_setup
+    node.vm.provision "shell", name: "install Gnome...", inline: script_gnome
+    node.vm.provision "shell", name: "set up Gnome...", inline: script_setup_gnome, privileged: false
+    node.vm.provision "shell", name: "install Gnome...", inline: script_edge
+    node.vm.provision "shell", name: "install xrdp...", inline: script_xrdp, reboot: true
   end
 
   # Create a forwarded port mapping which allows access to a specific port
