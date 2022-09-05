@@ -1,54 +1,50 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
 # *Variables
+box       = 'generic/fedora36'
+boxversion = '4.1.10'
+provider  = 'virtualbox'
+vboxname   = 'FedoraVB'
+# network configuration
+ip_addr   = '192.168.56.88'
+dns       = '9.9.9.9,149.112.112.112'
+# vm configuration
+memory    = 6144
+cpu       = 4
+# calculate variables
+hostname  = vboxname.downcase
+gateway = ip_addr.sub(/\d+$/, '1')
 
-box = 'generic/fedora36'
-provider = 'virtualbox'
-vm_name = 'Vagrant'
-memory = 8192
-cpu = 4
-ip_addr  = '192.168.56.27'
-
-
-# *Scripts
-
-$script_install_root_ca = <<-SCRIPT
-cat <<EOF >/etc/pki/ca-trust/source/anchors/pg_root_ca.crt
------BEGIN CERTIFICATE-----
-MIIDhDCCAmygAwIBAgIEWffYtDANBgkqhkiG9w0BAQsFADBiMRMwEQYKCZImiZPy
-LGQBGRYDY29tMRIwEAYKCZImiZPyLGQBGRYCUEcxIjAgBgNVBAsTGUNlcnRpZmlj
-YXRpb24gQXV0aG9yaXRpZXMxEzARBgNVBAMTClBHIFJvb3QgQ0EwHhcNMjEwODIw
-MjEyMjAyWhcNMzAxMTIwMjE1MjAyWjBiMRMwEQYKCZImiZPyLGQBGRYDY29tMRIw
-EAYKCZImiZPyLGQBGRYCUEcxIjAgBgNVBAsTGUNlcnRpZmljYXRpb24gQXV0aG9y
-aXRpZXMxEzARBgNVBAMTClBHIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IB
-DwAwggEKAoIBAQCvzYvNn6TTw4aMB9/S0eDcxfKQBub10ce+ThkBqfJh3TvM4QWE
-dJCbAriKdu7mC8LWiL1WWOJ1nELseounY/XD+pmcvjN8zdbQu96VdpzVNAAkuUIG
-XncMKR1rs4iYseEDQTiYAm/sGQp/7E/6IPfqII5ijPARpn2LS4+EljpuJu93IrLi
-raLcX6JwLCpW8+Donmdagr2nc7G2a4XpM5Ym4b8Cur1wAyXA8ofGbJkAzHFtl64z
-MTytTSGgxuVJhit3exXo0W4EbyX7PiPklo0zZOaAQUZg+fczVPc7dDQ4UHO4Cdw3
-xPD2p+aY2b1ALg+O5GQ8jBA0ESKtnEAi9pZVAgMBAAGjQjBAMA4GA1UdDwEB/wQE
-AwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBSJ5rbVwA1YQU1YK5Mzw0mm
-Adk86zANBgkqhkiG9w0BAQsFAAOCAQEALCXLR6Jvd7uZiBMz0KUBPYt0I2D1nSkT
-AkAo8UehPcWQnobXRE2v0fPG6RFSIx52Ve24VxI09Celk1rmoRz0ypbuLpxR43ZZ
-sgZ97BQsuSXQ33Gwmy8S88MNSQh4fGkw8j9M/qLxXR4PgsGZZt6a2SlILo1meMyB
-7eFC4qWru6xdLhus1HkMEwK6gvGo6MuENfQE5aifJYHpfjmHQkqKDeK4mK33ec8F
-6rHi5MT1Y8sb2a1lhxIX9msEE5R9IDfobHmVZUcBV4pDS27h5Np6O3vpAmsmyRRp
-HAcIb1YGBLnhP55WZtsBBdmzCNMPbmdBRATCIaJ3+T/y6TZFzo7gkA==
------END CERTIFICATE-----
-EOF
-update-ca-trust
+script_configure_static_ip = <<-SCRIPT
+nmcli con mod 'Wired connection 1' ipv4.addresses #{ip_addr}/24
+nmcli con mod 'Wired connection 1' ipv4.gateway #{gateway}
+nmcli con mod 'Wired connection 1' ipv4.dns #{dns}
+nmcli con mod 'Wired connection 1' ipv4.method manual
 SCRIPT
 
-$script_upgrade_packages = <<-SCRIPT
+script_upgrade_packages = <<-SCRIPT
 dnf upgrade -y
 SCRIPT
 
-$script_install_packages = <<-SCRIPT
-dnf install -y @development-tools
-dnf install -y 'dnf-command(offline-upgrade)' bash-completion jq nano npm dotnet
-dnf clean all -y
+# fix limited PATH for sudo on a Centos image
+script_fix_sudo = <<-SCRIPT
+cp /etc/sudoers /etc/sudoers.bck
+sed -e 's%secure_path = /sbin%secure_path = /usr/local/sbin:/usr/local/bin:%' /etc/sudoers.bck >/etc/sudoers
 SCRIPT
 
-$script_install_omp = <<-SCRIPT
-REL=$(curl -sk https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+# install rquirements
+script_requirements = <<-SCRIPT
+dnf install -y \\
+  @development-tools \\
+  fedora-workstation-repositories \\
+  dnf-plugins-core \\
+  bash-completion \\
+  openssl jq nano npm sassc
+SCRIPT
+
+script_omp = <<-SCRIPT
+REL=$(curl -s https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
 if type oh-my-posh &>/dev/null; then
   OMP_VER=$(oh-my-posh version)
   if [ "$REL" == "$OMP_VER" ]; then
@@ -57,12 +53,12 @@ if type oh-my-posh &>/dev/null; then
   fi
 fi
 echo "Installing oh-my-posh v$REL"
-curl -Lk https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
+curl -L https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
 chmod +x /usr/local/bin/oh-my-posh
 SCRIPT
 
-$script_install_pwsh = <<-SCRIPT
-REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+script_pwsh = <<-SCRIPT
+REL=$(curl -s https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
 if type pwsh &>/dev/null; then
   PWSH_VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
   if [ "$REL" == "$PWSH_VER" ]; then
@@ -74,17 +70,31 @@ echo "Installing PowerShell v$REL"
 dnf install -y https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-1.rh.x86_64.rpm
 SCRIPT
 
-$script_install_pwsh_modules = <<-SCRIPT
-pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Force'
-cat <<EOF | pwsh -nop -c -
+script_pwsh_modules = <<-SCRIPT
+pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
+cat <<'EOF' | pwsh -nop -c -
+$WarningPreference = 'SilentlyContinue' && \
 Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted && \
-Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Quiet && \
-Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Quiet && \
-Write-Host 'Enable PSAnsiRenderingFileInfo' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo
+Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet && \
+Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet && \
+Write-Host 'Enable PSAnsiRenderingFileInfo' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue
+EOF
+type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE' || true
+SCRIPT
+
+script_user_profile = <<-SCRIPT
+pwsh -nop -c 'Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue'
+type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE' || true
+cat >> ~/.bashrc <<'EOF'
+# initialize oh-my-posh prompt
+if type oh-my-posh &>/dev/null; then
+  [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
+fi
 EOF
 SCRIPT
 
-$script_install_docker = <<-SCRIPT
+# install docker
+script_docker = <<-SCRIPT
 dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
 dnf install -y docker-ce docker-ce-cli containerd.io
 usermod -a -G docker vagrant
@@ -92,78 +102,295 @@ systemctl enable --now docker.service
 systemctl enable --now containerd.service
 SCRIPT
 
-$script_install_kubectl = <<-SCRIPT
-cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
+# set systemd ulimits
+script_ulimits = <<-SCRIPT
+cat << EOF > /etc/security/limits.d/k8slimits.conf
+* soft nofile 120000
+* hard nofile 524288
+root soft nofile 120000
+root hard nofile 524288
+EOF
+sed -i "s/^.*DefaultLimitNOFILE.*$/DefaultLimitNOFILE=120000\:524288/" /etc/systemd/user.conf
+sed -i "s/^.*DefaultLimitNOFILE.*$/DefaultLimitNOFILE=120000\:524288/" /etc/systemd/system.conf
+SCRIPT
+
+# set new ulimit trigger
+script_inotify = <<-SCRIPT
+sysctl -w fs.inotify.max_user_instances=1280 >/etc/sysctl.d/99-custom-inotify.conf
+sysctl -w fs.inotify.max_user_watches=655360 >>/etc/sysctl.d/99-custom-inotify.conf
+sysctl -p /etc/sysctl.d/99-custom-inotify.conf
+SCRIPT
+
+# install smee
+script_smee = <<-SCRIPT
+  npm install -g smee-client
+SCRIPT
+
+# install KIND
+#script_kind = <<-SCRIPT
+#  curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
+#  install -o root -g root -m 0755 kind /usr/local/bin/kind
+#SCRIPT
+
+# install pivnet
+#script_pivnet = <<-SCRIPT
+#yum install -y wget
+#wget https://github.com/pivotal-cf/pivnet-cli/releases/download/v3.0.1/pivnet-linux-amd64-3.0.1 -O pivnet
+#install -m 755 pivnet /usr/local/bin/pivnet
+#SCRIPT
+
+# install carvel
+#script_carvel = <<-SCRIPT
+#  curl -s https://carvel.dev/install.sh > install.sh
+#  bash install.sh
+#SCRIPT
+
+## install tanzu_cli
+#script_tanzu = <<-SCRIPT
+#  curl -s https://carvel.dev/install.sh > install.sh
+#  bash install.sh
+#SCRIPT
+
+# install argo-rollouts cli
+script_argorolloutscli = <<-SCRIPT
+curl -LO "https://github.com/argoproj/argo-rollouts/releases/download/v1.2.1/kubectl-argo-rollouts-linux-amd64"
+install -o root -g root -m 0755 kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
+SCRIPT
+
+# install kubectl
+script_kubectl = <<-SCRIPT
+[ -f /etc/yum.repos.d/kubernetes.repo ] || cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
 enabled=1
 gpgcheck=1
-repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-dnf install -y kubectl
+if type kubectl &>/dev/null; then
+  dnf update -y kubectl
+else
+  dnf install -y kubectl
+fi
 SCRIPT
 
-$script_install_helm = <<-SCRIPT
-curl -fsSLk -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+# install K3D
+script_k3d = <<-SCRIPT
+curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+SCRIPT
+
+script_k9s = <<-SCRIPT
+REL=$(curl --silent "https://api.github.com/repos/derailed/k9s/releases/latest" | grep -Po '"tag_name": *"v\\K.*?(?=")')
+curl -sLO --output-dir /tmp "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_x86_64.tar.gz"
+mkdir -p /opt/k9s
+tar zxf /tmp/k9s_Linux_x86_64.tar.gz -C /opt/k9s && rm -f /tmp/k9s_Linux_x86_64.tar.gz
+ln -s /opt/k9s/k9s /usr/bin/k9s
+SCRIPT
+
+# install flux-cli
+script_flux = <<-SCRIPT
+  curl -s https://fluxcd.io/install.sh > install.sh
+  bash install.sh
+SCRIPT
+
+script_helm = <<-SCRIPT
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
 ./get_helm.sh && rm -f get_helm.sh
 SCRIPT
 
-$script_install_k3d = <<-SCRIPT
-curl -sk https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+script_minikube = <<-SCRIPT
+dnf install -y https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm
 SCRIPT
 
-$script_install_k9s = <<-SCRIPT
-REL=$(curl -sk "https://api.github.com/repos/derailed/k9s/releases/latest" | grep -Po '"tag_name": *"v\\K.*?(?=")')
-curl -sLOk --output-dir /tmp "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_x86_64.tar.gz"
-mkdir -p /opt/k9s
-tar zxf /tmp/k9s_Linux_x86_64.tar.gz -C /opt/k9s && rm -f /tmp/k9s_Linux_x86_64.tar.gz
-[ -f /usr/bin/k9s ] || ln -s /opt/k9s/k9s /usr/bin/k9s
+# install kubeseal
+script_kubeseal = <<-SCRIPT
+wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.17.5/kubeseal-0.17.5-linux-amd64.tar.gz -O - | tar xz
+install -m 755 kubeseal /usr/local/bin/kubeseal
 SCRIPT
 
-$script_install_pwsh_kubectl_autocompletion = <<-SCRIPT
-pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE'
+# install yq
+script_yq = <<-SCRIPT
+REL=$(curl -sk https://api.github.com/repos/mikefarah/yq/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+wget https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz -O - | tar xz
+mv yq_linux_amd64 yq
+install -m 755 yq /usr/local/bin/yq
+rm yq yq.1 install-man-page.sh
 SCRIPT
 
+# install latest kustomize
+script_kustomize = <<-SCRIPT
+curl -fsSL -o ./install_kustomize.sh "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+chmod 700 ./install_kustomize.sh
+rm -f /usr/local/bin/kustomize
+./install_kustomize.sh
+install ./kustomize /usr/local/bin
+# ./install_kustomize.sh "4.1.3" "/usr/local/bin"
+SCRIPT
 
-# *Vagrant VM configuration
+# setup profiles
+script_global_profile_setup = <<-SCRIPT
+mv -f /tmp/.config/bash_profile.sh /etc/profile.d/
+mv -f /tmp/.config/bash_aliases.sh /etc/profile.d/
+mv -f /tmp/.config/kubectl_aliases /etc/profile.d/
+mv -f /tmp/.config/theme.omp.json /etc/profile.d/
+mv -f /tmp/.config/profile.ps1 /opt/microsoft/powershell/7/
+mv -f /tmp/.config/kubectl_functions.ps1 /opt/microsoft/powershell/7/
+rm -fr /tmp/.config
+SCRIPT
+
+# install guest additions and run GUI
+script_GUI = <<-SCRIPT
+#Install Virtual Box guest additions from rpmfusion repos
+
+#Add GNOME desktop to fedora server
+dnf group install -y gnome-desktop
+dnf install -y gnome-tweaks gnome-extensions-app
+dnf config-manager --set-enabled google-chrome
+dnf install -y google-chrome-stable
+systemctl set-default graphical.target
+SCRIPT
+
+script_setup_gnome = <<-SCRIPT
+# install dash-to-dock
+git clone https://github.com/micheleg/dash-to-dock.git
+make -C dash-to-dock install && rm -fr dash-to-dock
+# button-layout
+gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,close"
+# keyboard repat and delay settings
+gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 24
+gsettings set org.gnome.desktop.peripherals.keyboard delay 250
+# disable desktop screen lock
+gsettings set org.gnome.desktop.session idle-delay 0
+SCRIPT
+
 
 Vagrant.configure("2") do |config|
+
+  # add ssh configuration after setting static IP on the machine
+  config.trigger.after :reload do |trigger|
+    trigger.info = "Add vagrant configuration to ssh config file..."
+    trigger.run = {privileged: "false", powershell_elevated_interactive: "false", path: "./scripts/set_ssh_config.ps1", :args => [ip_addr, hostname]}
+  end
+
+  # map local workstation folder
+  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{ENV['VAGRANT_HOME']}/insecure_private_key"]
+  config.ssh.insert_key = false
+
+  # timeout setup to overcome security tool related performance impact
+  config.vm.boot_timeout = 600
+  config.vm.graceful_halt_timeout = 600
+
+  # box to be installed
   config.vm.box = box
-  config.vm.provider provider
-  config.vm.define vm_name do |node|
-    node.vm.provider provider do |vb|
+  config.vm.box_version = boxversion
+
+  # check if guestadditions are already installed
+  if Vagrant.has_plugin?("vagrant-vbguest") then
+    config.vbguest.auto_update = false
+  end
+
+  config.vm.define vboxname do |node|
+    # define server
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = vboxname
+      vb.memory = memory
+      vb.cpus = cpu
+      # vb.gui = true
+      # create disk medium if not already existent
+      # if !File.exists?("#{vdi}")
+        # add storage controller
+        # vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
+        # create hard disc
+        # vb.customize ["createhd", "--filename", "#{vdi}", "--size", size, "--variant", "Standard"]
+      # end
+      # attach disk to VM
+      # vb.customize ["storageattach", :id, "--storagectl", "#{controller}", "--port", port, "--device", 0, "--type", "hdd", "--medium", "#{vdi}"]
+      # set graphics controller
+      # vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga", "--accelerate3d", "on" ]
       vb.customize [
         "modifyvm", :id,
         "--cableconnected1", "on",
+        "--graphicscontroller", "vmsvga",
+        "--accelerate3d", "on",
         "--paravirtprovider", "hyperv"
       ]
-      vb.name = vm_name
-      vb.memory = memory
-      vb.cpus = cpu
+      # set 3d acceleration
     end
-    # node.vm.network "private_network", ip: ip_addr, hostname: true
-    # run scripts
-    # node.vm.provision "shell", privileged: true, name: "installing Root CA...", inline: $script_install_root_ca
-    node.vm.provision "shell", privileged: true, name: "upgrading packages...", inline: $script_upgrade_packages, reboot: true
-    node.vm.provision "shell", privileged: true, name: "installing packages...", inline: $script_install_packages
-    node.vm.provision "shell", privileged: true, name: "installing docker...", inline: $script_install_docker
-    node.vm.provision "shell", privileged: true, name: "installing kubectl...", inline: $script_install_kubectl
-    node.vm.provision "shell", privileged: true, name: "installing k3d...", inline: $script_install_k3d
-    node.vm.provision "shell", privileged: true, name: "installing k9s...", inline: $script_install_k9s
-    node.vm.provision "shell", privileged: true, name: "installing oh-my-posh...", inline: $script_install_omp
-    node.vm.provision "shell", privileged: true, name: "installing PowerShell...", inline: $script_install_pwsh
-    node.vm.provision "shell", privileged: false, name: "installing PS modules...", inline: $script_install_pwsh_modules
-    node.vm.provision "shell", privileged: false, name: "installing PS kubectl autocompletion...", inline: $script_install_pwsh_kubectl_autocompletion
-    node.vm.provision "shell", privileged: false, name: "installing helm...", inline: $script_install_helm
-    # copy files
-    node.vm.provision "file", source: ".config/.mytheme.omp.json", destination: "~/.mytheme.omp.json"
-    node.vm.provision "file", source: ".config/.profile.ps1", destination: "~/.config/powershell/profile.ps1"
-    node.vm.provision "file", source: ".config/.bashrc", destination: "~/.bashrc"
-    node.vm.provision "file", source: ".config/.bash_aliases", destination: "~/.bash_aliases"
-    node.vm.provision "file", source: ".config/.kubectl_aliases", destination: "~/.kubectl_aliases"
-    node.vm.provision "file", source: ".config/.kubectl_functions.ps1", destination: "~/.kubectl_functions.ps1"
+
+    # define network
+    node.vm.hostname = hostname
+    node.vm.network "private_network", ip: ip_addr, auto_config: false, hostname: true
+
+    # the trigger definition
+    node.trigger.after :up do |trigger|
+      trigger.name = "set inotify settings"
+      trigger.run_remote = {inline: script_inotify, privileged: true}
+    end
+
+    node.vm.provision "shell", name: "upgrade system...", inline: script_upgrade_packages
+    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    # reload with new IP
+    node.vm.provision :reload
+    # continue installing features
+    node.vm.provision "shell", name: "fix secure path setting for sudo", inline: script_fix_sudo
+    node.vm.provision "shell", name: "install rpm requirements", inline: script_requirements
+    # node.vm.provision "shell", name: "set ulimits on systemd", inline: script_ulimits
+    node.vm.provision "shell", name: "install oh-my-posh...", inline: script_omp
+    node.vm.provision "shell", name: "install PowerShell...", inline: script_pwsh
+    node.vm.provision "shell", name: "install yq", inline: script_yq
+    node.vm.provision "shell", name: "install docker and containerd", inline: script_docker
+    node.vm.provision "shell", name: "install kubectl", inline: script_kubectl
+    node.vm.provision "shell", name: "install helm...", inline: script_helm, privileged: false
+    node.vm.provision "shell", name: "install minikube...", inline: script_minikube
+    node.vm.provision "shell", name: "install K3D", inline: script_k3d
+    node.vm.provision "shell", name: "install k9s...", inline: script_k9s
+    node.vm.provision "shell", name: "install flux", inline: script_flux
+    node.vm.provision "shell", name: "install smee", inline: script_smee
+    node.vm.provision "shell", name: "install kubeseal", inline: script_kubeseal
+    node.vm.provision "shell", name: "install kustomize", inline: script_kustomize
+    node.vm.provision "shell", name: "install argo-rollouts cli", inline: script_argorolloutscli
+    node.vm.provision "shell", name: "install PS modules...", inline: script_pwsh_modules
+    node.vm.provision "shell", name: "set up user profile...", inline: script_user_profile, privileged: false
+    # copy profile setup to vm
+    node.vm.provision "file", source: ".config", destination: "/tmp/"
+    node.vm.provision "shell", name: "set up global profile...", inline: script_global_profile_setup
+    node.vm.provision "shell", name: "install GUI", inline: script_GUI
+    node.vm.provision "shell", name: "set up Gnome...", inline: script_setup_gnome, privileged: false, reboot: true
+
+    # install KIND
+    #node.vm.provision "shell",
+    #  name: "install KIND",
+    #  inline: script_kind,
+    #  privileged: true
+
+    # install pivnet
+    #node.vm.provision "shell",
+    #  name: "install pivnet",
+    #  inline: script_pivnet,
+    #  privileged: true
+
+    # install carvel
+    #node.vm.provision "shell",
+    #  name: "install carvel",
+    #  inline: script_carvel,
+    #  privileged: true
   end
 end
+
+# Notes:
+# in case of vagrant receives an ssh error while executing, VirtualBox will not
+# terminate properly
+#
+# 1.  Issues with network not found
+#     got to Windows network center and disable & enable related network interface
+#     check the network configuration within VirtualBox to be bound to correct interface
+#
+# 2.  in case of ssh, cleanup will leave headless frontends running causing
+#     dirs not been deleted during a vagrant destroy -f!
+#     Use Taskmanager to kill the VirtualBox processes
+#     Use Explorer to delete VM related dir in ./VirtualBox VMs/ folder
+#
+#     Seems to be a current bug with VirtualBox headless processes!
