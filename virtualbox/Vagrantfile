@@ -10,8 +10,10 @@ vboxname   = 'FedoraVB'
 ip_addr   = '192.168.56.88'
 dns       = '9.9.9.9,149.112.112.112'
 # vm configuration
-memory    = 6144
+memory    = 8192
 cpu       = 4
+# vagrant data folder location
+vagrant_home = '~/vagrant.d'
 # calculate variables
 hostname  = vboxname.downcase
 gateway = ip_addr.sub(/\d+$/, '1')
@@ -44,7 +46,7 @@ dnf install -y \\
 SCRIPT
 
 script_omp = <<-SCRIPT
-REL=$(curl -s https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+REL=$(curl -sk https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
 if type oh-my-posh &>/dev/null; then
   OMP_VER=$(oh-my-posh version)
   if [ "$REL" == "$OMP_VER" ]; then
@@ -53,12 +55,12 @@ if type oh-my-posh &>/dev/null; then
   fi
 fi
 echo "Installing oh-my-posh v$REL"
-curl -L https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
+curl -Lk https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
 chmod +x /usr/local/bin/oh-my-posh
 SCRIPT
 
 script_pwsh = <<-SCRIPT
-REL=$(curl -s https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
 if type pwsh &>/dev/null; then
   PWSH_VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
   if [ "$REL" == "$PWSH_VER" ]; then
@@ -74,9 +76,9 @@ script_pwsh_modules = <<-SCRIPT
 pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
 cat <<'EOF' | pwsh -nop -c -
 $WarningPreference = 'SilentlyContinue' && \
-Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted && \
-Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet && \
-Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet && \
+Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted;
+Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet -WarningAction SilentlyContinue;
+Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet -WarningAction SilentlyContinue;
 Write-Host 'Enable PSAnsiRenderingFileInfo' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue
 EOF
 type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE' || true
@@ -128,7 +130,7 @@ SCRIPT
 
 # install KIND
 #script_kind = <<-SCRIPT
-#  curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
+#  curl -Lok ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
 #  install -o root -g root -m 0755 kind /usr/local/bin/kind
 #SCRIPT
 
@@ -141,19 +143,19 @@ SCRIPT
 
 # install carvel
 #script_carvel = <<-SCRIPT
-#  curl -s https://carvel.dev/install.sh > install.sh
+#  curl -sk https://carvel.dev/install.sh > install.sh
 #  bash install.sh
 #SCRIPT
 
 ## install tanzu_cli
 #script_tanzu = <<-SCRIPT
-#  curl -s https://carvel.dev/install.sh > install.sh
+#  curl -sk https://carvel.dev/install.sh > install.sh
 #  bash install.sh
 #SCRIPT
 
 # install argo-rollouts cli
 script_argorolloutscli = <<-SCRIPT
-curl -LO "https://github.com/argoproj/argo-rollouts/releases/download/v1.2.1/kubectl-argo-rollouts-linux-amd64"
+curl -LOk "https://github.com/argoproj/argo-rollouts/releases/download/v1.2.1/kubectl-argo-rollouts-linux-amd64"
 install -o root -g root -m 0755 kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
 SCRIPT
 
@@ -176,11 +178,11 @@ SCRIPT
 
 # install K3D
 script_k3d = <<-SCRIPT
-curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+curl -sk https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
 SCRIPT
 
 script_k9s = <<-SCRIPT
-REL=$(curl --silent "https://api.github.com/repos/derailed/k9s/releases/latest" | grep -Po '"tag_name": *"v\\K.*?(?=")')
+REL=$(curl -sk "https://api.github.com/repos/derailed/k9s/releases/latest" | grep -Po '"tag_name": *"v\\K.*?(?=")')
 curl -sLO --output-dir /tmp "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_x86_64.tar.gz"
 mkdir -p /opt/k9s
 tar zxf /tmp/k9s_Linux_x86_64.tar.gz -C /opt/k9s && rm -f /tmp/k9s_Linux_x86_64.tar.gz
@@ -189,12 +191,12 @@ SCRIPT
 
 # install flux-cli
 script_flux = <<-SCRIPT
-  curl -s https://fluxcd.io/install.sh > install.sh
+  curl -sk https://fluxcd.io/install.sh > install.sh
   bash install.sh
 SCRIPT
 
 script_helm = <<-SCRIPT
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+curl -fsSLk -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
 ./get_helm.sh && rm -f get_helm.sh
 SCRIPT
@@ -220,7 +222,7 @@ SCRIPT
 
 # install latest kustomize
 script_kustomize = <<-SCRIPT
-curl -fsSL -o ./install_kustomize.sh "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+curl -fsSLk -o ./install_kustomize.sh "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 chmod 700 ./install_kustomize.sh
 rm -f /usr/local/bin/kustomize
 ./install_kustomize.sh
@@ -276,7 +278,7 @@ Vagrant.configure("2") do |config|
   # map local workstation folder
   config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
   config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
-  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{ENV['VAGRANT_HOME']}/insecure_private_key"]
+  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{vagrant_home}/insecure_private_key"]
   config.ssh.insert_key = false
 
   # timeout setup to overcome security tool related performance impact
@@ -330,6 +332,7 @@ Vagrant.configure("2") do |config|
       trigger.run_remote = {inline: script_inotify, privileged: true}
     end
 
+    # install packages
     node.vm.provision "shell", name: "upgrade system...", inline: script_upgrade_packages
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
     # reload with new IP
