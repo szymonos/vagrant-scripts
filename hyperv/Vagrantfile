@@ -12,7 +12,7 @@ dns       = '9.9.9.9,149.112.112.112'
 memory    = 8192
 cpu       = 4
 # vagrant data folder location
-vagrant_home = '~/vagrant.d'
+vagrant_home = '~/.vagrant.d'
 # calculate variables
 hostname  = vm_name.downcase
 switch_ip, prefix = nat_net.sub(/0(?=\/)/, '1').split('/')

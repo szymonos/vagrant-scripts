@@ -13,7 +13,7 @@ dns       = '9.9.9.9,149.112.112.112'
 memory    = 8192
 cpu       = 4
 # vagrant data folder location
-vagrant_home = '~/vagrant.d'
+vagrant_home = '~/.vagrant.d'
 # calculate variables
 hostname  = vboxname.downcase
 gateway = ip_addr.sub(/\d+$/, '1')
