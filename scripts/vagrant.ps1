@@ -14,7 +14,7 @@ https://github.com/secana/EnhancedSessionMode/blob/master/install_esm_fedora3x.s
 
 # change vagrant.d location
 [System.Environment]::GetEnvironmentVariable('VAGRANT_HOME')
-[System.Environment]::SetEnvironmentVariable('VAGRANT_HOME', 'F:\Virtual Machines\.vagrant.d', 'Machine')
+[System.Environment]::SetEnvironmentVariable('VAGRANT_HOME', "$HOME\.vagrant.d", 'Machine')
 $env:VAGRANT_HOME
 
 vagrant init hashicorp/bionic64
@@ -26,4 +26,4 @@ vagrant init generic/fedora36
 vagrant up
 
 # Change switch in all existing VMs
-Get-VM | Get-VMNetworkAdapter | Connect-VMNetworkAdapter -SwitchName "NatSwitch"
+Get-VM | Get-VMNetworkAdapter | Connect-VMNetworkAdapter -SwitchName 'NatSwitch'

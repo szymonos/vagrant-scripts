@@ -9,8 +9,10 @@ nat_net   = '192.168.121.0/24'
 ip_addr   = '192.168.121.88'
 dns       = '9.9.9.9,149.112.112.112'
 # vm configuration
-memory    = 6144
+memory    = 8192
 cpu       = 4
+# vagrant data folder location
+vagrant_home = '~/vagrant.d'
 # calculate variables
 hostname  = vm_name.downcase
 switch_ip, prefix = nat_net.sub(/0(?=\/)/, '1').split('/')
@@ -35,7 +37,7 @@ dnf install -y \\
 SCRIPT
 
 script_omp = <<-SCRIPT
-REL=$(curl -s https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+REL=$(curl -sk https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
 if type oh-my-posh &>/dev/null; then
   OMP_VER=$(oh-my-posh version)
   if [ "$REL" == "$OMP_VER" ]; then
@@ -44,12 +46,12 @@ if type oh-my-posh &>/dev/null; then
   fi
 fi
 echo "Install oh-my-posh v$REL"
-curl -L https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
+curl -Lk https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
 chmod +x /usr/local/bin/oh-my-posh
 SCRIPT
 
 script_pwsh = <<-SCRIPT
-REL=$(curl -s https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
 if type pwsh &>/dev/null; then
   PWSH_VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
   if [ "$REL" == "$PWSH_VER" ]; then
@@ -64,9 +66,9 @@ SCRIPT
 script_pwsh_modules = <<-SCRIPT
 pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
 cat <<'EOF' | pwsh -nop -c -
-Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted && \
-Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet && \
-Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet && \
+Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted;
+Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet -WarningAction SilentlyContinue;
+Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet -WarningAction SilentlyContinue;
 Write-Host 'Enable PSAnsiRenderingFileInfo' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue
 EOF
 type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE' || true
@@ -75,7 +77,7 @@ SCRIPT
 script_user_profile = <<-SCRIPT
 pwsh -nop -c 'Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue'
 type kubectl &>/dev/null && pwsh -nop -c '(kubectl completion powershell).Replace("''kubectl''", "''k''") > $PROFILE' || true
-cat >> ~/.bashrc <<'EOF'
+cat <<'EOF' >> ~/.bashrc
 # initialize oh-my-posh prompt
 if type oh-my-posh &>/dev/null; then
   [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
@@ -92,7 +94,7 @@ systemctl enable --now containerd.service
 SCRIPT
 
 script_helm = <<-SCRIPT
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+curl -fsSLk -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
 ./get_helm.sh && rm -f get_helm.sh
 SCRIPT
@@ -102,12 +104,12 @@ dnf install -y https://storage.googleapis.com/minikube/releases/latest/minikube-
 SCRIPT
 
 script_k3d = <<-SCRIPT
-curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+curl -sk https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
 SCRIPT
 
 script_k9s = <<-SCRIPT
-REL=$(curl --silent "https://api.github.com/repos/derailed/k9s/releases/latest" | grep -Po '"tag_name": *"v\\K.*?(?=")')
-curl -sLO --output-dir /tmp "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_x86_64.tar.gz"
+REL=$(curl -sk "https://api.github.com/repos/derailed/k9s/releases/latest" | grep -Po '"tag_name": *"v\\K.*?(?=")')
+curl -sLOk --output-dir /tmp "https://github.com/derailed/k9s/releases/download/v${REL}/k9s_Linux_x86_64.tar.gz"
 mkdir -p /opt/k9s
 tar zxf /tmp/k9s_Linux_x86_64.tar.gz -C /opt/k9s && rm -f /tmp/k9s_Linux_x86_64.tar.gz
 ln -s /opt/k9s/k9s /usr/bin/k9s
@@ -212,7 +214,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "public_network"
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
-  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{ENV['VAGRANT_HOME']}/insecure_private_key"]
+  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{vagrant_home}/insecure_private_key"]
   config.ssh.insert_key = false
 
   config.vm.define vm_name do |node|
@@ -224,7 +226,7 @@ Vagrant.configure("2") do |config|
       h.cpus = cpu
       h.vmname = vm_name
     end
-
+    # install packages
     node.vm.provision "shell", name: "upgrade system...", inline: script_upgrade_packages
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
     # reload with new IP
