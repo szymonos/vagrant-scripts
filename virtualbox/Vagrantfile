@@ -104,6 +104,23 @@ systemctl enable --now docker.service
 systemctl enable --now containerd.service
 SCRIPT
 
+# install kubectl
+script_kubectl = <<-SCRIPT
+[ -f /etc/yum.repos.d/kubernetes.repo ] || cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+if type kubectl &>/dev/null; then
+  dnf update -y kubectl
+else
+  dnf install -y kubectl
+fi
+SCRIPT
+
 # set systemd ulimits
 script_ulimits = <<-SCRIPT
 cat << EOF > /etc/security/limits.d/k8slimits.conf
@@ -157,23 +174,6 @@ SCRIPT
 script_argorolloutscli = <<-SCRIPT
 curl -LOk "https://github.com/argoproj/argo-rollouts/releases/download/v1.2.1/kubectl-argo-rollouts-linux-amd64"
 install -o root -g root -m 0755 kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
-SCRIPT
-
-# install kubectl
-script_kubectl = <<-SCRIPT
-[ -f /etc/yum.repos.d/kubernetes.repo ] || cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
-[kubernetes]
-name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-EOF
-if type kubectl &>/dev/null; then
-  dnf update -y kubectl
-else
-  dnf install -y kubectl
-fi
 SCRIPT
 
 # install K3D
@@ -340,7 +340,7 @@ Vagrant.configure("2") do |config|
     # continue installing features
     node.vm.provision "shell", name: "fix secure path setting for sudo", inline: script_fix_sudo
     node.vm.provision "shell", name: "install rpm requirements", inline: script_requirements
-    # node.vm.provision "shell", name: "set ulimits on systemd", inline: script_ulimits
+    node.vm.provision "shell", name: "set ulimits on systemd", inline: script_ulimits
     node.vm.provision "shell", name: "install oh-my-posh...", inline: script_omp
     node.vm.provision "shell", name: "install PowerShell...", inline: script_pwsh
     node.vm.provision "shell", name: "install yq", inline: script_yq
