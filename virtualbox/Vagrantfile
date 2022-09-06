@@ -214,10 +214,18 @@ SCRIPT
 # install yq
 script_yq = <<-SCRIPT
 REL=$(curl -sk https://api.github.com/repos/mikefarah/yq/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
-wget https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz -O - | tar xz
-mv yq_linux_amd64 yq
-install -m 755 yq /usr/local/bin/yq
-rm yq yq.1 install-man-page.sh
+if type yq &>/dev/null; then
+  YQ_VER=$(yq --version | sed -r 's/.* ([0-9\\.]+)$/\\1/')
+  [ "$REL" == "$YQ_VER" ] && echo "The latest yq v$REL is already installed!" || YQ_INSTALL=true
+else
+  YQ_INSTALL=true
+fi
+if [ $YQ_INSTALL ]; then
+  wget https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz -O - | tar xz
+  mv -f yq_linux_amd64 yq
+  install -m 755 yq /usr/local/bin/yq
+  rm -f yq yq.1 install-man-page.sh
+fi
 SCRIPT
 
 # install latest kustomize
