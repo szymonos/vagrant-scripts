@@ -11,13 +11,14 @@ ip_addr   = '192.168.56.88'
 dns       = '9.9.9.9,149.112.112.112'
 # vm configuration
 memory    = 8192
-cpu       = 4
+cpu       = 2
 # vagrant data folder location
 vagrant_home = '~/.vagrant.d'
 # calculate variables
 hostname  = vboxname.downcase
 gateway = ip_addr.sub(/\d+$/, '1')
 
+# *Scripts
 script_configure_static_ip = <<-SCRIPT
 nmcli con mod 'Wired connection 1' ipv4.addresses #{ip_addr}/24
 nmcli con mod 'Wired connection 1' ipv4.gateway #{gateway}
@@ -39,8 +40,7 @@ SCRIPT
 script_requirements = <<-SCRIPT
 dnf install -y \\
   @development-tools \\
-  fedora-workstation-repositories \\
-  dnf-plugins-core \\
+  dnf-plugins-core 'dnf-command(offline-upgrade)' \\
   bash-completion \\
   openssl jq nano npm sassc
 SCRIPT
@@ -250,14 +250,9 @@ rm -fr /tmp/.config
 SCRIPT
 
 # install guest additions and run GUI
-script_GUI = <<-SCRIPT
-#Install Virtual Box guest additions from rpmfusion repos
-
-#Add GNOME desktop to fedora server
+script_gnome = <<-SCRIPT
 dnf group install -y gnome-desktop
 dnf install -y gnome-tweaks gnome-extensions-app
-dnf config-manager --set-enabled google-chrome
-dnf install -y google-chrome-stable
 systemctl set-default graphical.target
 SCRIPT
 
@@ -266,7 +261,7 @@ script_setup_gnome = <<-SCRIPT
 git clone https://github.com/micheleg/dash-to-dock.git
 make -C dash-to-dock install && rm -fr dash-to-dock
 # button-layout
-gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,close"
+gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
 # keyboard repat and delay settings
 gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 24
 gsettings set org.gnome.desktop.peripherals.keyboard delay 250
@@ -274,7 +269,14 @@ gsettings set org.gnome.desktop.peripherals.keyboard delay 250
 gsettings set org.gnome.desktop.session idle-delay 0
 SCRIPT
 
+script_edge = <<-SCRIPT
+rpm --import https://packages.microsoft.com/keys/microsoft.asc
+dnf config-manager --add-repo https://packages.microsoft.com/yumrepos/edge
+mv /etc/yum.repos.d/packages.microsoft.com_yumrepos_edge.repo /etc/yum.repos.d/microsoft-edge-stable.repo
+dnf install -y microsoft-edge-stable
+SCRIPT
 
+# *VM provisioning
 Vagrant.configure("2") do |config|
 
   # add ssh configuration after setting static IP on the machine
@@ -324,8 +326,7 @@ Vagrant.configure("2") do |config|
         "modifyvm", :id,
         "--cableconnected1", "on",
         "--graphicscontroller", "vmsvga",
-        "--accelerate3d", "on",
-        "--paravirtprovider", "hyperv"
+        "--accelerate3d", "on"
       ]
       # set 3d acceleration
     end
@@ -368,8 +369,9 @@ Vagrant.configure("2") do |config|
     # copy profile setup to vm
     node.vm.provision "file", source: ".config", destination: "/tmp/"
     node.vm.provision "shell", name: "set up global profile...", inline: script_global_profile_setup
-    node.vm.provision "shell", name: "install GUI", inline: script_GUI
-    node.vm.provision "shell", name: "set up Gnome...", inline: script_setup_gnome, privileged: false, reboot: true
+    node.vm.provision "shell", name: "install GUI", inline: script_gnome
+    node.vm.provision "shell", name: "set up Gnome...", inline: script_setup_gnome, privileged: false
+    node.vm.provision "shell", name: "install Edge...", inline: script_edge, reboot: true
 
     # install KIND
     #node.vm.provision "shell",
