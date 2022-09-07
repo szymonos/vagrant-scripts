@@ -1,0 +1,206 @@
+﻿# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# *Variables
+box       = 'generic/centos8'
+provider  = 'hyperv'
+vm_name   = 'CentOS8HV'
+# network configuration
+nat_net   = '192.168.121.0/24'
+ip_addr   = '192.168.121.71'
+dns       = '9.9.9.9,149.112.112.112'
+# vm configuration
+memory    = 4096
+cpu       = 4
+# vagrant data folder location
+vagrant_home = '~/.vagrant.d'
+# calculate variables
+hostname  = vm_name.downcase
+switch_ip, prefix = nat_net.sub(/0(?=\/)/, '1').split('/')
+
+# *Scripts
+script_configure_static_ip = <<-SCRIPT
+nmcli con mod 'System eth0' ipv4.addresses #{ip_addr}/#{prefix}
+nmcli con mod 'System eth0' ipv4.gateway #{switch_ip}
+nmcli con mod 'System eth0' ipv4.dns #{dns}
+nmcli con mod 'System eth0' ipv4.method manual
+SCRIPT
+
+script_upgrade_packages = <<-SCRIPT
+dnf upgrade -y
+SCRIPT
+
+script_install_packages = <<-SCRIPT
+dnf install -y \\
+  bash-completion \\
+  openssl jq
+SCRIPT
+
+script_omp = <<-SCRIPT
+REL=$(curl -sk https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+if type oh-my-posh &>/dev/null; then
+  OMP_VER=$(oh-my-posh version)
+  if [ "$REL" == "$OMP_VER" ]; then
+    echo "The latest oh-my-posh v$REL is already installed!"
+    exit 0
+  fi
+fi
+echo "Install oh-my-posh v$REL"
+curl -Lk https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64 -o /usr/local/bin/oh-my-posh
+chmod +x /usr/local/bin/oh-my-posh
+SCRIPT
+
+script_pwsh = <<-SCRIPT
+REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+if type pwsh &>/dev/null; then
+  PWSH_VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
+  if [ "$REL" == "$PWSH_VER" ]; then
+    echo "The latest PowerShell v$REL is already installed!"
+    exit 0
+  fi
+fi
+echo "Install PowerShell v$REL"
+dnf install -y https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-1.rh.x86_64.rpm
+SCRIPT
+
+script_pwsh_modules = <<-SCRIPT
+pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
+cat <<'EOF' | pwsh -nop -c -
+Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted;
+Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet -WarningAction SilentlyContinue;
+Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet -WarningAction SilentlyContinue;
+Write-Host 'Enable PSAnsiRenderingFileInfo' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue
+EOF
+SCRIPT
+
+script_user_profile = <<-SCRIPT
+pwsh -nop -c 'Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue'
+cat <<'EOF' >> ~/.bashrc
+# initialize oh-my-posh prompt
+if type oh-my-posh &>/dev/null; then
+  [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
+fi
+EOF
+SCRIPT
+
+# install yq
+script_yq = <<-SCRIPT
+REL=$(curl -sk https://api.github.com/repos/mikefarah/yq/releases/latest | grep -Po '"tag_name": *"v\\K.*?(?=")')
+if type yq &>/dev/null; then
+  YQ_VER=$(yq --version | sed -r 's/.* ([0-9\\.]+)$/\\1/')
+  [ "$REL" == "$YQ_VER" ] && echo "The latest yq v$REL is already installed!" || YQ_INSTALL=true
+else
+  YQ_INSTALL=true
+fi
+if [ $YQ_INSTALL ]; then
+  wget https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz -O - | tar xz
+  mv -f yq_linux_amd64 yq
+  install -m 755 yq /usr/local/bin/yq
+  rm -f yq yq.1 install-man-page.sh
+fi
+SCRIPT
+
+script_global_profile_setup = <<-SCRIPT
+mv -f /tmp/.config/bash_profile.sh /etc/profile.d/
+mv -f /tmp/.config/bash_aliases.sh /etc/profile.d/
+mv -f /tmp/.config/theme.omp.json /etc/profile.d/
+mv -f /tmp/.config/profile.ps1 /opt/microsoft/powershell/7/
+rm -fr /tmp/.config
+SCRIPT
+
+# *VM provisioning
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  config.trigger.before :up do |trigger|
+    trigger.info = "Creating 'NATSwitch' Hyper-V switch if it does not exist..."
+    trigger.run = {privileged: "true", powershell_elevated_interactive: "true", path: "./scripts/create_hyperv_natswitch.ps1", :args => [nat_net]}
+  end
+  config.trigger.before :reload do |trigger|
+    trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
+    trigger.run = {privileged: "true", powershell_elevated_interactive: "true", path: "./scripts/set_hyperv_switch.ps1", :args => [vm_name]}
+  end
+  config.trigger.after :reload do |trigger|
+    trigger.info = "Add vagrant configuration to ssh config file..."
+    trigger.run = {privileged: "false", powershell_elevated_interactive: "false", path: "./scripts/set_ssh_config.ps1", :args => [ip_addr, hostname]}
+  end
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = box
+  config.vm.provider provider
+  # timeout setup to overcome security tool related performance impact
+  config.vm.boot_timeout = 600
+  config.vm.graceful_halt_timeout = 600
+
+  config.vm.hostname = hostname
+  config.vm.network "public_network"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{vagrant_home}/insecure_private_key"]
+  config.ssh.insert_key = false
+
+  config.vm.define vm_name do |node|
+    node.vm.provider provider do |h|
+      h.enable_virtualization_extensions = true
+      h.linked_clone = true
+      h.memory = memory
+      h.maxmemory = memory
+      h.cpus = cpu
+      h.vmname = vm_name
+    end
+    # install packages
+    node.vm.provision "shell", name: "upgrade system...", inline: script_upgrade_packages
+    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    # reload with new IP
+    node.vm.provision :reload
+    # continue installing features
+    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
+    node.vm.provision "shell", name: "install oh-my-posh...", inline: script_omp
+    node.vm.provision "shell", name: "install PowerShell...", inline: script_pwsh
+    node.vm.provision "shell", name: "install yq", inline: script_yq
+    node.vm.provision "shell", name: "install PS modules...", inline: script_pwsh_modules
+    node.vm.provision "shell", name: "set up user profile...", inline: script_user_profile, privileged: false
+    # copy profile setup to vm
+    node.vm.provision "file", source: ".config", destination: "/tmp/"
+    node.vm.provision "shell", name: "set up global profile...", inline: script_global_profile_setup, reboot: true
+  end
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # NOTE: This will enable public access to the opened port
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine and only allow access
+  # via 127.0.0.1 to disable public access
+  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  # View the documentation for the provider you are using for more
+  # information on available options.
+end
