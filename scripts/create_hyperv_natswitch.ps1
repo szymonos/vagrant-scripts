@@ -8,7 +8,10 @@ NAT network CIDR range.
 [CmdletBinding()]
 param (
     [Parameter(Mandatory, Position = 0)]
-    [string]$NatNetwork
+    [string]$NatNetwork,
+
+    [Parameter(Mandatory, Position = 1)]
+    [string]$VMName
 )
 
 # calculate IP address and prefix
@@ -36,3 +39,6 @@ if ($NatNetwork -notin (Get-NetNat | Select-Object -ExpandProperty InternalIPInt
 } else {
     Write-Host "'$NatNetwork' for static IP configuration already registered; skipping"
 }
+
+Write-Host "Update configuration version"
+Update-VMVersion -Name $VMName
