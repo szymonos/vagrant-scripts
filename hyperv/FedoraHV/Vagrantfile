@@ -255,22 +255,22 @@ SCRIPT
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
-Vagrant.configure("2") do |config|
+Vagrant.configure('2') do |config|
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
 
   config.trigger.before :up do |trigger|
-    trigger.info = "Creating 'NATSwitch' Hyper-V switch if it does not exist..."
-    trigger.run = {privileged: "true", powershell_elevated_interactive: "true", path: "./scripts/create_hyperv_natswitch.ps1", :args => [nat_net]}
+    trigger.info = 'Creating "NATSwitch" Hyper-V switch if it does not exist...'
+    trigger.run = {privileged: 'true', powershell_elevated_interactive: 'true', path: '../../scripts/create_hyperv_natswitch.ps1', :args => [nat_net, vm_name]}
   end
   config.trigger.before :reload do |trigger|
-    trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
-    trigger.run = {privileged: "true", powershell_elevated_interactive: "true", path: "./scripts/set_hyperv_switch.ps1", :args => [vm_name]}
+    trigger.info = 'Setting Hyper-V switch to "NATSwitch" to allow for static IP...'
+    trigger.run = {privileged: 'true', powershell_elevated_interactive: 'true', path: '../../scripts/set_hyperv_switch.ps1', :args => [vm_name]}
   end
   config.trigger.after :reload do |trigger|
-    trigger.info = "Add vagrant configuration to ssh config file..."
-    trigger.run = {privileged: "false", powershell_elevated_interactive: "false", path: "./scripts/set_ssh_config.ps1", :args => [ip_addr, hostname]}
+    trigger.info = 'Add vagrant configuration to ssh config file...'
+    trigger.run = {privileged: 'false', powershell_elevated_interactive: 'false', path: '../../scripts/set_ssh_config.ps1', :args => [ip_addr, hostname]}
   end
 
   # Every Vagrant development environment requires a box. You can search for
@@ -282,10 +282,10 @@ Vagrant.configure("2") do |config|
   config.vm.graceful_halt_timeout = 600
 
   config.vm.hostname = hostname
-  config.vm.network "public_network"
-  config.vm.synced_folder ".", "/vagrant", disabled: true
-  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
-  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{vagrant_home}/insecure_private_key"]
+  config.vm.network 'public_network'
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+  config.vm.provision 'file', source: '~/.ssh/id_rsa.pub', destination: '~/.ssh/authorized_keys'
+  config.ssh.private_key_path = ['~/.ssh/id_rsa', "#{vagrant_home}/insecure_private_key"]
   config.ssh.insert_key = false
 
   config.vm.define vm_name do |node|
@@ -298,36 +298,36 @@ Vagrant.configure("2") do |config|
       h.vmname = vm_name
     end
     # install packages
-    node.vm.provision "shell", name: "upgrade system...", inline: script_upgrade_packages
-    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    node.vm.provision 'shell', name: 'upgrade system...', inline: script_upgrade_packages
+    node.vm.provision 'shell', name: 'configure static ip', inline: script_configure_static_ip
     # reload with new IP
     node.vm.provision :reload
     # continue installing features
-    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
-    node.vm.provision "shell", name: "set ulimits on systemd", inline: script_ulimits
-    node.vm.provision "shell", name: "install oh-my-posh...", inline: script_omp
-    node.vm.provision "shell", name: "install PowerShell...", inline: script_pwsh
-    node.vm.provision "shell", name: "install yq", inline: script_yq
-    node.vm.provision "shell", name: "install docker...", inline: script_docker
-    node.vm.provision "shell", name: "install kubectl...", inline: script_kubectl
-    node.vm.provision "shell", name: "install helm...", inline: script_helm, privileged: false
-    node.vm.provision "shell", name: "install minikube...", inline: script_minikube
-    node.vm.provision "shell", name: "install k3d...", inline: script_k3d
-    node.vm.provision "shell", name: "install k9s...", inline: script_k9s
-    node.vm.provision "shell", name: "install flux", inline: script_flux
-    node.vm.provision "shell", name: "install smee", inline: script_smee
-    node.vm.provision "shell", name: "install kubeseal", inline: script_kubeseal
-    node.vm.provision "shell", name: "install kustomize", inline: script_kustomize
-    node.vm.provision "shell", name: "install argo-rollouts cli", inline: script_argorolloutscli
-    node.vm.provision "shell", name: "install PS modules...", inline: script_pwsh_modules
-    node.vm.provision "shell", name: "set up user profile...", inline: script_user_profile, privileged: false
+    node.vm.provision 'shell', name: 'install packages...', inline: script_install_packages
+    node.vm.provision 'shell', name: 'set ulimits on systemd', inline: script_ulimits
+    node.vm.provision 'shell', name: 'install oh-my-posh...', inline: script_omp
+    node.vm.provision 'shell', name: 'install PowerShell...', inline: script_pwsh
+    node.vm.provision 'shell', name: 'install yq', inline: script_yq
+    node.vm.provision 'shell', name: 'install docker...', inline: script_docker
+    node.vm.provision 'shell', name: 'install kubectl...', inline: script_kubectl
+    node.vm.provision 'shell', name: 'install helm...', inline: script_helm, privileged: false
+    node.vm.provision 'shell', name: 'install minikube...', inline: script_minikube
+    node.vm.provision 'shell', name: 'install k3d...', inline: script_k3d
+    node.vm.provision 'shell', name: 'install k9s...', inline: script_k9s
+    node.vm.provision 'shell', name: 'install flux', inline: script_flux
+    node.vm.provision 'shell', name: 'install smee', inline: script_smee
+    node.vm.provision 'shell', name: 'install kubeseal', inline: script_kubeseal
+    node.vm.provision 'shell', name: 'install kustomize', inline: script_kustomize
+    node.vm.provision 'shell', name: 'install argo-rollouts cli', inline: script_argorolloutscli
+    node.vm.provision 'shell', name: 'install PS modules...', inline: script_pwsh_modules
+    node.vm.provision 'shell', name: 'set up user profile...', inline: script_user_profile, privileged: false
     # copy profile setup to vm
-    node.vm.provision "file", source: ".config", destination: "/tmp/"
-    node.vm.provision "shell", name: "set up global profile...", inline: script_global_profile_setup
-    node.vm.provision "shell", name: "install Gnome...", inline: script_gnome
-    node.vm.provision "shell", name: "set up Gnome...", inline: script_setup_gnome, privileged: false
-    node.vm.provision "shell", name: "install xrdp...", inline: script_xrdp
-    node.vm.provision "shell", name: "install Edge...", inline: script_edge, reboot: true
+    node.vm.provision 'file', source: '.config', destination: '/tmp/'
+    node.vm.provision 'shell', name: 'set up global profile...', inline: script_global_profile_setup
+    node.vm.provision 'shell', name: 'install Gnome...', inline: script_gnome
+    node.vm.provision 'shell', name: 'set up Gnome...', inline: script_setup_gnome, privileged: false
+    node.vm.provision 'shell', name: 'install xrdp...', inline: script_xrdp
+    node.vm.provision 'shell', name: 'install Edge...', inline: script_edge, reboot: true
   end
 
   # Create a forwarded port mapping which allows access to a specific port

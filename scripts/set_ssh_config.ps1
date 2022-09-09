@@ -30,7 +30,7 @@ Host $HostName
 Write-Host "Adding $HostName to ssh config..."
 if (Select-String -Pattern "HostName $IpAddress" -Path $sshConfig) {
     $content = [IO.File]::ReadAllText($sshConfig) -replace "Host[^\n]+\n[^\n]+$IpAddress\n[\s\S]+?(?=(\nHost|\z))", $vagrantConfig
-    [IO.File]::WriteAllLines($sshConfig, $content)
+    [IO.File]::WriteAllText($sshConfig, $content)
 } else {
     Add-Content -Value $vagrantConfig -Path $sshConfig
 }
