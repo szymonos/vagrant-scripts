@@ -4,8 +4,8 @@
 .SYNOPSIS
 Correct the ssh/config with new VM IP address and fingerprint in known_hosts
 .EXAMPLE
-$VMName = 'Vagrant'
-_ Vagrant/hyperv_ssh_fix.ps1 -v $VMName
+$VMName = 'FedoraHV'
+scripts/other/hyperv_ssh_fix.ps1 -v $VMName
 #>
 [CmdletBinding()]
 param (
