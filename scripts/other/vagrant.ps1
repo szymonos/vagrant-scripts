@@ -1,4 +1,3 @@
-#!/usr/bin/pwsh -nop
 <#
 .LINK
 https://app.vagrantup.com/generic/boxes/fedora36

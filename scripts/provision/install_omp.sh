@@ -1,10 +1,14 @@
 #!/bin/bash
+: '
+scripts/provision/install_omp.sh
+'
+
 APP='oh-my-posh'
 while [[ -z $REL ]]; do
   REL=$(curl -sk https://api.github.com/repos/JanDeDobbeleer/oh-my-posh/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
 done
 
-if type oh-my-posh &>/dev/null; then
+if type $APP &>/dev/null; then
   VER=$(oh-my-posh version)
   if [ $REL == $VER ]; then
     echo "The latest $APP v$VER is already installed!"

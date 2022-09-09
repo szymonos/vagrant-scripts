@@ -1,4 +1,8 @@
 #!/bin/bash
+: '
+scripts/provision/install_kubectl.sh
+'
+
 [ -f /etc/yum.repos.d/kubernetes.repo ] || cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes

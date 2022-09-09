@@ -1,4 +1,8 @@
 #!/bin/bash
+: '
+scripts/provision/setup_pwsh_allusers.sh
+'
+
 # install PowerShellGet preview
 pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
 # install modules and setup experimental features
