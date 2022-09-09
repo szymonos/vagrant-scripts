@@ -39,6 +39,3 @@ if ($NatNetwork -notin (Get-NetNat | Select-Object -ExpandProperty InternalIPInt
 } else {
     Write-Host "'$NatNetwork' for static IP configuration already registered; skipping"
 }
-
-Write-Host "Update configuration version"
-Update-VMVersion -Name $VMName

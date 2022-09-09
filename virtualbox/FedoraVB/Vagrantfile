@@ -277,18 +277,18 @@ dnf install -y microsoft-edge-stable
 SCRIPT
 
 # *VM provisioning
-Vagrant.configure("2") do |config|
+Vagrant.configure('2') do |config|
 
   # add ssh configuration after setting static IP on the machine
   config.trigger.after :reload do |trigger|
-    trigger.info = "Add vagrant configuration to ssh config file..."
-    trigger.run = {privileged: "false", powershell_elevated_interactive: "false", path: "./scripts/set_ssh_config.ps1", :args => [ip_addr, hostname]}
+    trigger.info = 'Add vagrant configuration to ssh config file...'
+    trigger.run = {privileged: 'false', powershell_elevated_interactive: 'false', path: '../../scripts/set_ssh_config.ps1', :args => [ip_addr, hostname]}
   end
 
   # map local workstation folder
-  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
-  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
-  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{vagrant_home}/insecure_private_key"]
+  config.vm.synced_folder '.', '/vagrant', type: 'virtualbox'
+  config.vm.provision 'file', source: '~/.ssh/id_rsa.pub', destination: '~/.ssh/authorized_keys'
+  config.ssh.private_key_path = ['~/.ssh/id_rsa', "#{vagrant_home}/insecure_private_key"]
   config.ssh.insert_key = false
 
   # timeout setup to overcome security tool related performance impact
@@ -300,13 +300,13 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = boxversion
 
   # check if guestadditions are already installed
-  if Vagrant.has_plugin?("vagrant-vbguest") then
+  if Vagrant.has_plugin?('vagrant-vbguest') then
     config.vbguest.auto_update = false
   end
 
   config.vm.define vboxname do |node|
     # define server
-    node.vm.provider "virtualbox" do |vb|
+    node.vm.provider provider do |vb|
       vb.name = vboxname
       vb.memory = memory
       vb.cpus = cpu
@@ -314,80 +314,80 @@ Vagrant.configure("2") do |config|
       # create disk medium if not already existent
       # if !File.exists?("#{vdi}")
         # add storage controller
-        # vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
+        # vb.customize ["storagectl', :id, "--name', "SATA', "--add', "sata" ]
         # create hard disc
-        # vb.customize ["createhd", "--filename", "#{vdi}", "--size", size, "--variant", "Standard"]
+        # vb.customize ["createhd', "--filename', "#{vdi}', "--size', size, "--variant', "Standard"]
       # end
       # attach disk to VM
-      # vb.customize ["storageattach", :id, "--storagectl", "#{controller}", "--port", port, "--device", 0, "--type", "hdd", "--medium", "#{vdi}"]
+      # vb.customize ["storageattach', :id, "--storagectl', "#{controller}', "--port', port, "--device', 0, "--type', "hdd', "--medium', "#{vdi}"]
       # set graphics controller
-      # vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga", "--accelerate3d", "on" ]
+      # vb.customize ["modifyvm', :id, "--graphicscontroller', "vmsvga', "--accelerate3d', "on" ]
       vb.customize [
-        "modifyvm", :id,
-        "--cableconnected1", "on",
-        "--graphicscontroller", "vmsvga",
-        "--accelerate3d", "on"
+        'modifyvm', :id,
+        '--cableconnected1', 'on',
+        '--graphicscontroller', 'vmsvga',
+        '--accelerate3d', 'on'
       ]
       # set 3d acceleration
     end
 
     # define network
     node.vm.hostname = hostname
-    node.vm.network "private_network", ip: ip_addr, auto_config: false, hostname: true
+    node.vm.network 'private_network', ip: ip_addr, auto_config: false, hostname: true
 
     # the trigger definition
     node.trigger.after :up do |trigger|
-      trigger.name = "set inotify settings"
+      trigger.name = 'set inotify settings'
       trigger.run_remote = {inline: script_inotify, privileged: true}
     end
 
     # install packages
-    node.vm.provision "shell", name: "upgrade system...", inline: script_upgrade_packages
-    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    node.vm.provision 'shell', name: 'upgrade system...', inline: script_upgrade_packages
+    node.vm.provision 'shell', name: 'configure static ip', inline: script_configure_static_ip
     # reload with new IP
     node.vm.provision :reload
     # continue installing features
-    node.vm.provision "shell", name: "fix secure path setting for sudo", inline: script_fix_sudo
-    node.vm.provision "shell", name: "install rpm requirements", inline: script_requirements
-    node.vm.provision "shell", name: "set ulimits on systemd", inline: script_ulimits
-    node.vm.provision "shell", name: "install oh-my-posh...", inline: script_omp
-    node.vm.provision "shell", name: "install PowerShell...", inline: script_pwsh
-    node.vm.provision "shell", name: "install yq", inline: script_yq
-    node.vm.provision "shell", name: "install docker and containerd", inline: script_docker
-    node.vm.provision "shell", name: "install kubectl", inline: script_kubectl
-    node.vm.provision "shell", name: "install helm...", inline: script_helm, privileged: false
-    node.vm.provision "shell", name: "install minikube...", inline: script_minikube
-    node.vm.provision "shell", name: "install K3D", inline: script_k3d
-    node.vm.provision "shell", name: "install k9s...", inline: script_k9s
-    node.vm.provision "shell", name: "install flux", inline: script_flux
-    node.vm.provision "shell", name: "install smee", inline: script_smee
-    node.vm.provision "shell", name: "install kubeseal", inline: script_kubeseal
-    node.vm.provision "shell", name: "install kustomize", inline: script_kustomize
-    node.vm.provision "shell", name: "install argo-rollouts cli", inline: script_argorolloutscli
-    node.vm.provision "shell", name: "install PS modules...", inline: script_pwsh_modules
-    node.vm.provision "shell", name: "set up user profile...", inline: script_user_profile, privileged: false
+    node.vm.provision 'shell', name: 'fix secure path setting for sudo', inline: script_fix_sudo
+    node.vm.provision 'shell', name: 'install rpm requirements', inline: script_requirements
+    node.vm.provision 'shell', name: 'set ulimits on systemd', inline: script_ulimits
+    node.vm.provision 'shell', name: 'install oh-my-posh...', inline: script_omp
+    node.vm.provision 'shell', name: 'install PowerShell...', inline: script_pwsh
+    node.vm.provision 'shell', name: 'install yq', inline: script_yq
+    node.vm.provision 'shell', name: 'install docker and containerd', inline: script_docker
+    node.vm.provision 'shell', name: 'install kubectl', inline: script_kubectl
+    node.vm.provision 'shell', name: 'install helm...', inline: script_helm, privileged: false
+    node.vm.provision 'shell', name: 'install minikube...', inline: script_minikube
+    node.vm.provision 'shell', name: 'install K3D', inline: script_k3d
+    node.vm.provision 'shell', name: 'install k9s...', inline: script_k9s
+    node.vm.provision 'shell', name: 'install flux', inline: script_flux
+    node.vm.provision 'shell', name: 'install smee', inline: script_smee
+    node.vm.provision 'shell', name: 'install kubeseal', inline: script_kubeseal
+    node.vm.provision 'shell', name: 'install kustomize', inline: script_kustomize
+    node.vm.provision 'shell', name: 'install argo-rollouts cli', inline: script_argorolloutscli
+    node.vm.provision 'shell', name: 'install PS modules...', inline: script_pwsh_modules
+    node.vm.provision 'shell', name: 'set up user profile...', inline: script_user_profile, privileged: false
     # copy profile setup to vm
-    node.vm.provision "file", source: ".config", destination: "/tmp/"
-    node.vm.provision "shell", name: "set up global profile...", inline: script_global_profile_setup
-    node.vm.provision "shell", name: "install GUI", inline: script_gnome
-    node.vm.provision "shell", name: "set up Gnome...", inline: script_setup_gnome, privileged: false
-    node.vm.provision "shell", name: "install Edge...", inline: script_edge, reboot: true
+    node.vm.provision 'file', source: '.config', destination: '/tmp/'
+    node.vm.provision 'shell', name: 'set up global profile...', inline: script_global_profile_setup
+    node.vm.provision 'shell', name: 'install GUI', inline: script_gnome
+    node.vm.provision 'shell', name: 'set up Gnome...', inline: script_setup_gnome, privileged: false
+    node.vm.provision 'shell', name: 'install Edge...', inline: script_edge, reboot: true
 
     # install KIND
-    #node.vm.provision "shell",
-    #  name: "install KIND",
+    #node.vm.provision 'shell',
+    #  name: 'install KIND',
     #  inline: script_kind,
     #  privileged: true
 
     # install pivnet
-    #node.vm.provision "shell",
-    #  name: "install pivnet",
+    #node.vm.provision 'shell',
+    #  name: 'install pivnet',
     #  inline: script_pivnet,
     #  privileged: true
 
     # install carvel
-    #node.vm.provision "shell",
-    #  name: "install carvel",
+    #node.vm.provision 'shell',
+    #  name: 'install carvel',
     #  inline: script_carvel,
     #  privileged: true
   end
