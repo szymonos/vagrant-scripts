@@ -3,6 +3,9 @@
 Script synopsis.
 .PARAMETER VMName
 Name of the virtual machine.
+.EXAMPLE
+$VMName = 'FedoraVB'
+scripts/trigger/cleanup_vbox_vm.ps1 -v $VMName
 #>
 
 [CmdletBinding()]
@@ -11,4 +14,4 @@ param (
     [string]$VMName
 )
 
-Remove-Item "$HOME\VirtualBox VMs\$VMName" -Force -Recurse
+Remove-Item "$HOME\VirtualBox VMs\$VMName" -Force -Recurse -ErrorAction SilentlyContinue
