@@ -1,4 +1,8 @@
 #!/bin/bash
+: '
+scripts/provision/setup_gnome.sh
+'
+
 # install dash-to-dock
 GIT_SSL_NO_VERIFY=true git clone https://github.com/micheleg/dash-to-dock.git
 make -C dash-to-dock install && rm -fr dash-to-dock

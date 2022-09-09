@@ -1,4 +1,3 @@
-#!/usr/bin/pwsh -nop
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS

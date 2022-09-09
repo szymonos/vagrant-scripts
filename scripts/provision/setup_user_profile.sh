@@ -1,4 +1,8 @@
 #!/bin/bash
+: '
+scripts/provision/setup_user_profile.sh
+'
+
 # enable powershell experimental features
 pwsh -nop -c 'Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue'
 

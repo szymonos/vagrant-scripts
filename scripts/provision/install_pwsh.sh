@@ -1,10 +1,14 @@
 #!/bin/bash
-APP='PowerShell'
+: '
+scripts/provision/install_pwsh.sh
+'
+
+APP='pwsh'
 while [[ -z $REL ]]; do
   REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
 done
 
-if type pwsh &>/dev/null; then
+if type $APP &>/dev/null; then
   VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
   if [ $REL == $VER ]; then
     echo "The latest $APP v$VER is already installed!"

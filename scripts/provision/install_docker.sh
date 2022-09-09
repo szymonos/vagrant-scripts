@@ -1,4 +1,8 @@
 #!/bin/bash
+: '
+scripts/provision/install_docker.sh
+'
+
 dnf config-manager --add-repo 'https://download.docker.com/linux/fedora/docker-ce.repo'
 dnf install -y docker-ce docker-ce-cli containerd.io
 usermod -a -G docker vagrant
