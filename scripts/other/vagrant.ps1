@@ -9,7 +9,7 @@ https://technology.amis.nl/tech/vagrant-and-hyper-v-dont-do-it/
 https://github.com/HonkinWaffles/Public-Guides/blob/main/Vagrant+WSL2+Hyper-V.md
 https://github.com/secana/EnhancedSessionMode/blob/master/install_esm_fedora3x.sh
 .EXAMPLE
-.tools\vagrant\vagrant.ps1
+scripts/other/vagrant.ps1
 #>
 
 # change vagrant.d location
