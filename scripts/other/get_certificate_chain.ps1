@@ -3,7 +3,7 @@
 Script for saving root and intermediate certificates from certificate chain.
 .EXAMPLE
 scripts/get_certificate_chain.ps1
-$Path = '.tmp'; scripts/get_certificate_chain.ps1 -p $Path
+$Path = '.tmp'; scripts/other/get_certificate_chain.ps1 -p $Path
 #>
 [CmdletBinding()]
 [OutputType([Collections.Generic.List[string]])]
