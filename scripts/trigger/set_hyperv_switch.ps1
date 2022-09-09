@@ -1,8 +1,9 @@
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
 Script synopsis.
-.PARAMETER NatNetwork
-NAT network CIDR range.
+.PARAMETER VMName
+Name of the virtual machine.
 #>
 
 [CmdletBinding()]
