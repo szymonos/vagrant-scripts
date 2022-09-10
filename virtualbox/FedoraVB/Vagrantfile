@@ -1,0 +1,138 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# *Variables
+box       = 'generic/fedora36'
+boxversion = '4.1.10'
+provider  = 'virtualbox'
+vboxname   = 'FedoraVB'
+# network configuration
+ip_addr   = '192.168.56.88'
+dns       = '9.9.9.9,149.112.112.112'
+# vm configuration
+memory    = 8192
+cpu       = 2
+# vagrant data folder location
+vagrant_home = '~/.vagrant.d'
+# calculate variables
+hostname  = vboxname.downcase
+gateway = ip_addr.sub(/\d+$/, '1')
+
+# *Scripts
+script_configure_static_ip = <<-SCRIPT
+nmcli con mod 'Wired connection 1' ipv4.addresses #{ip_addr}/24
+nmcli con mod 'Wired connection 1' ipv4.gateway #{gateway}
+nmcli con mod 'Wired connection 1' ipv4.dns #{dns}
+nmcli con mod 'Wired connection 1' ipv4.method manual
+SCRIPT
+
+script_install_packages = <<-SCRIPT
+dnf install -y \\
+  @development-tools \\
+  fedora-workstation-repositories \\
+  dnf-plugins-core 'dnf-command(offline-upgrade)' \\
+  bash-completion \\
+  openssl jq nano npm sassc
+SCRIPT
+
+script_global_profile_setup = <<-SCRIPT
+mv -f /tmp/config/*.sh /etc/profile.d/
+mv -f /tmp/config/kubectl_aliases /etc/profile.d/
+mv -f /tmp/config/theme.omp.json /etc/profile.d/
+mv -f /tmp/config/profile.ps1 /opt/microsoft/powershell/7/
+mv -f /tmp/config/ps_functions.ps1 /opt/microsoft/powershell/7/
+mkdir -p /usr/local/share/powershell/Scripts/
+mv -f /tmp/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
+rm -fr /tmp/config
+SCRIPT
+
+# *VM provisioning
+Vagrant.configure('2') do |config|
+
+  config.trigger.before :up do |trigger|
+    trigger.info = 'Cleaning up VirtualBox VM folder...'
+    trigger.run = {privileged: 'false', powershell_elevated_interactive: 'false', path: '../../scripts/trigger/cleanup_vbox_vm.ps1', :args => [vboxname]}
+  end
+  # add ssh configuration after setting static IP on the machine
+  config.trigger.after :reload do |trigger|
+    trigger.info = 'Add vagrant configuration to ssh config file...'
+    trigger.run = {privileged: 'false', powershell_elevated_interactive: 'false', path: '../../scripts/trigger/set_ssh_config.ps1', :args => [ip_addr, hostname]}
+  end
+
+  # map local workstation folder
+  config.vm.synced_folder '.', '/vagrant', type: 'virtualbox'
+  config.vm.provision 'file', source: '~/.ssh/id_rsa.pub', destination: '~/.ssh/authorized_keys'
+  config.ssh.private_key_path = ['~/.ssh/id_rsa', "#{vagrant_home}/insecure_private_key"]
+  config.ssh.insert_key = false
+
+  # timeout setup to overcome security tool related performance impact
+  config.vm.boot_timeout = 600
+  config.vm.graceful_halt_timeout = 600
+
+  # box to be installed
+  config.vm.box = box
+  # config.vm.box_version = boxversion
+
+  # check if guestadditions are already installed
+  if Vagrant.has_plugin?('vagrant-vbguest') then
+    config.vbguest.auto_update = false
+  end
+
+  config.vm.define vboxname do |node|
+    # define server
+    node.vm.provider provider do |vb|
+      vb.name = vboxname
+      vb.memory = memory
+      vb.cpus = cpu
+      vb.customize [
+        'modifyvm', :id,
+        '--cableconnected1', 'on',
+        '--graphicscontroller', 'vmsvga',
+        '--accelerate3d', 'on'
+      ]
+    end
+
+    # define network
+    node.vm.hostname = hostname
+    node.vm.network 'private_network', ip: ip_addr, auto_config: false, hostname: true
+
+    # the trigger definition
+    node.trigger.after :up do |trigger|
+      trigger.name = 'set inotify settings'
+      trigger.run_remote = {privileged: true, path: '../../scripts/trigger/set_inotify.sh'}
+    end
+
+    # install packages
+    node.vm.provision 'shell', name: 'install Root CA...', path: '../../.tmp/script_install_root_ca.sh'
+    node.vm.provision 'shell', name: 'upgrade system...', inline: 'dnf upgrade -y'
+    node.vm.provision 'shell', name: 'configure static ip', inline: script_configure_static_ip
+    # reload with new IP
+    node.vm.provision :reload
+    # continue installing features
+    node.vm.provision 'shell', name: 'install packages...', inline: script_install_packages
+    node.vm.provision 'shell', name: 'fix secure path setting for sudo', path: '../../scripts/provision/fix_sudo.sh'
+    node.vm.provision 'shell', name: 'install oh-my-posh...', path: '../../scripts/provision/install_omp.sh'
+    node.vm.provision 'shell', name: 'install PowerShell...', path: '../../scripts/provision/install_pwsh.sh'
+    node.vm.provision 'shell', name: 'install yq', path: '../../scripts/provision/install_yq.sh'
+    node.vm.provision 'shell', name: 'install docker...', path: '../../scripts/provision/install_docker.sh'
+    node.vm.provision 'shell', name: 'set ulimits on systemd', path: '../../scripts/provision/set_ulimits.sh'
+    node.vm.provision 'shell', name: 'install kubectl...', path: '../../scripts/provision/install_kubectl.sh'
+    node.vm.provision 'shell', name: 'install helm...', path: '../../scripts/provision/install_helm.sh', privileged: false
+    node.vm.provision 'shell', name: 'install minikube...', path: '../../scripts/provision/install_minikube.sh'
+    node.vm.provision 'shell', name: 'install k3d...', path: '../../scripts/provision/install_k3d.sh'
+    node.vm.provision 'shell', name: 'install k9s...', path: '../../scripts/provision/install_k9s.sh'
+    node.vm.provision 'shell', name: 'install flux', path: '../../scripts/provision/install_flux.sh'
+    node.vm.provision 'shell', name: 'install smee', path: '../../scripts/provision/install_smee.sh'
+    node.vm.provision 'shell', name: 'install kubeseal', path: '../../scripts/provision/install_kubeseal.sh'
+    node.vm.provision 'shell', name: 'install kustomize', path: '../../scripts/provision/install_kustomize.sh'
+    node.vm.provision 'shell', name: 'install argo-rollouts cli', path: '../../scripts/provision/install_argorolloutscli.sh'
+    node.vm.provision 'shell', name: 'install Gnome...', path: '../../scripts/provision/install_gnome.sh'
+    node.vm.provision 'shell', name: 'set up Gnome...', path: '../../scripts/provision/setup_gnome.sh', privileged: false
+    node.vm.provision 'shell', name: 'install Edge...', path: '../../scripts/provision/install_edge.sh'
+    # copy profile setup to vm
+    node.vm.provision 'file', source: '../../scripts/config', destination: '/tmp/'
+    node.vm.provision 'shell', name: 'set up global profile...', inline: script_global_profile_setup
+    node.vm.provision 'shell', name: 'setup PS for all users...', path: '../../scripts/provision/setup_pwsh_allusers.sh'
+    node.vm.provision 'shell', name: 'set up user profile...', path: '../../scripts/provision/setup_user_profile.sh', privileged: false, reboot: true
+  end
+end
