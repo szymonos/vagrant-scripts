@@ -22,7 +22,7 @@ $macAddress = (Get-VM -Name $VMName).NetworkAdapters.MacAddress -split '(.{2})' 
 do {
     [Console]::Write('.')
     Start-Sleep 2
-    $ip = Get-NetNeighbor -LinkLayerAddress $macAddress -ErrorAction SilentlyContinue | Select-Object -ExpandProperty IPAddress
+    $ip = Get-NetNeighbor -LinkLayerAddress $macAddress -ErrorAction SilentlyContinue | Select-Object -ExpandProperty IPAddress -First 1
 } until ($ip)
 Write-Host "`n$VMName : $ip"
 
@@ -30,7 +30,7 @@ Write-Host "`n$VMName : $ip"
 if (Select-String -Pattern "^Host\s+$($VMname.ToLower())" -Path "$HOME\.ssh\config") {
     [System.IO.File]::ReadAllText("$HOME\.ssh\config") -replace "(?s)(Host $($VMname.ToLower())\n(\s+?)HostName)\s+[\d\.]+", "`$1 $ip" | Out-File "$HOME\.ssh\config" -Encoding utf8 -NoNewline
 } else {
-    Add-Content -Path "$HOME\.ssh\config" -Value "Host $($VMname.ToLower())`n  HostName $ip`n  User root"
+    Add-Content -Path "$HOME\.ssh\config" -Value "Host $($VMname.ToLower())`n  HostName $ip`n  User vagrant"
 }
 
 # clean up .ssh/known_hosts entries

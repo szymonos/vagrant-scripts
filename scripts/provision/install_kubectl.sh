@@ -8,18 +8,15 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(fedora|debian|ubuntu|opensuse)' /etc/os-r
 if [ "$SYS_ID" == "debian" ] || [ "$SYS_ID" = "ubuntu" ]; then
   # ~Debian-based
   # Update the apt package index
-  apt update
-  apt install -y apt-transport-https ca-certificates curl
+  apt-get update
+  apt-get install -y apt-transport-https ca-certificates curl
   # download the Google Cloud public signing key
   curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
   # add the Kubernetes apt repository
   [ -f /etc/apt/sources.list.d/kubernetes.list ] || echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
   # update apt package index with the new repository and install kubectl
-  apt update
-  if type kubectl &>/dev/null; then
-    apt update -y kubectl
-  else
-    apt install -y kubectl
+  apt-get update
+  apt-get install -y kubectl
   fi
 elif [ "$SYS_ID" == "fedora" ]; then
   # ~RedHat-based
