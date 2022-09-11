@@ -10,7 +10,7 @@ done
 
 if type "$APP" &>/dev/null; then
   VER=$(k9s version -s | grep '^Version' | sed  -r 's/.*\s+v([0-9\.]+)$/\1/')
-  if [ "$REL" == "$VER" ]; then
+  if [ "$REL" = "$VER" ]; then
     echo "The latest $APP v$VER is already installed!"
     exit 0
   fi

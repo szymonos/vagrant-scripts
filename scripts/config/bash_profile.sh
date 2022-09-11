@@ -1,4 +1,6 @@
 #!/bin/bash
+# git aliases
+type git &>/dev/null && [ -f /etc/profile.d/git_aliases ] && source /etc/profile.d/git_aliases
 
 # kubectl autocompletion and aliases
 if type kubectl &>/dev/null; then
@@ -9,14 +11,4 @@ if type kubectl &>/dev/null; then
     command kubectl $@
   }
   [ -f /etc/profile.d/kubectl_aliases ] && source /etc/profile.d/kubectl_aliases
-fi
-
-# environment variables
-export SWD=$(pwd)
-# aliases
-alias cds="cd $SWD"
-
-# initialize oh-my-posh prompt
-if type oh-my-posh &>/dev/null; then
-  [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
 fi

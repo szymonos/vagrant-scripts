@@ -18,13 +18,6 @@ hostname  = vm_name.downcase
 switch_ip, prefix = nat_net.sub(/0(?=\/)/, '1').split('/')
 
 # *Scripts
-script_configure_static_ip = <<-SCRIPT
-nmcli con mod eth0 ipv4.addresses #{ip_addr}/#{prefix}
-nmcli con mod eth0 ipv4.gateway #{switch_ip}
-nmcli con mod eth0 ipv4.dns #{dns}
-nmcli con mod eth0 ipv4.method manual
-SCRIPT
-
 script_install_packages = <<-SCRIPT
 dnf install -y \\
   @development-tools \\
@@ -34,14 +27,12 @@ dnf install -y \\
   openssl jq nano npm sassc
 SCRIPT
 
-script_global_profile_setup = <<-SCRIPT
-mv -f /tmp/config/*.sh /etc/profile.d/
-mv -f /tmp/config/kubectl_aliases /etc/profile.d/
-mv -f /tmp/config/theme.omp.json /etc/profile.d/
-mv -f /tmp/config/profile.ps1 /opt/microsoft/powershell/7/
-mkdir -p /usr/local/share/powershell/Scripts/
-mv -f /tmp/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
-rm -fr /tmp/config
+script_configure_static_ip = <<-SCRIPT
+nmcli connection modify eth0 \\
+  ipv4.method manual \\
+  ipv4.addresses #{ip_addr}/#{prefix} \\
+  ipv4.gateway #{switch_ip} \\
+  ipv4.dns #{dns}
 SCRIPT
 
 # *VM provisioning
@@ -92,14 +83,7 @@ Vagrant.configure('2') do |config|
       h.vmname = vm_name
     end
     # install packages
-    node.vm.provision 'shell', name: 'upgrade system...', inline: 'dnf upgrade -y'
-    node.vm.provision 'shell', name: 'configure static ip', inline: script_configure_static_ip
-    # reload with new IP
-    node.vm.provision :reload
-    # continue installing features
     node.vm.provision 'shell', name: 'install packages...', inline: script_install_packages
-    node.vm.provision 'shell', name: 'install oh-my-posh...', path: '../../scripts/provision/install_omp.sh'
-    node.vm.provision 'shell', name: 'install PowerShell...', path: '../../scripts/provision/install_pwsh.sh'
     node.vm.provision 'shell', name: 'install yq', path: '../../scripts/provision/install_yq.sh'
     node.vm.provision 'shell', name: 'install docker...', path: '../../scripts/provision/install_docker.sh'
     node.vm.provision 'shell', name: 'set ulimits on systemd', path: '../../scripts/provision/set_ulimits.sh'
@@ -117,11 +101,17 @@ Vagrant.configure('2') do |config|
     node.vm.provision 'shell', name: 'set up Gnome...', path: '../../scripts/provision/setup_gnome.sh', privileged: false
     node.vm.provision 'shell', name: 'install Edge...', path: '../../scripts/provision/install_edge.sh'
     node.vm.provision 'shell', name: 'install xrdp...', path: '../../scripts/provision/install_xrdp.sh'
-    # copy profile setup to vm
+    # # ~setting up profiles
+    node.vm.provision 'shell', name: 'install oh-my-posh...', path: '../../scripts/provision/install_omp.sh'
+    node.vm.provision 'shell', name: 'install PowerShell...', path: '../../scripts/provision/install_pwsh.sh'
     node.vm.provision 'file', source: '../../scripts/config', destination: '/tmp/'
-    node.vm.provision 'shell', name: 'set up global profile...', inline: script_global_profile_setup
-    node.vm.provision 'shell', name: 'setup PS for all users...', path: '../../scripts/provision/setup_pwsh_allusers.sh'
-    node.vm.provision 'shell', name: 'set up user profile...', path: '../../scripts/provision/setup_user_profile.sh', privileged: false, reboot: true
+    node.vm.provision 'shell', name: 'set up PS for all users...', path: '../../scripts/provision/setup_pwsh_allusers.sh'
+    node.vm.provision 'shell', name: 'set up user profile...', path: '../../scripts/provision/setup_user_profile.sh', privileged: false
+    # ~upgrade system
+    node.vm.provision 'shell', name: 'upgrade system...', inline: 'dnf upgrade -y'
+    # ~set static ip and reload
+    node.vm.provision 'shell', name: 'configure static ip', inline: script_configure_static_ip
+    node.vm.provision :reload
   end
 
   # Create a forwarded port mapping which allows access to a specific port
