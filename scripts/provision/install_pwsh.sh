@@ -23,7 +23,7 @@ if [ "$SYS_ID" == "fedora" ]; then
   dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-1.rh.x86_64.rpm"
 elif [ "$SYS_ID" == "debian" ] || [ "$SYS_ID" = "ubuntu" ]; then
   curl -Ls "https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell_$REL-1.deb_amd64.deb" -o /tmp/powershell.deb
-  apt install -fy /tmp/powershell.deb && rm -f /tmp/powershell.deb
+  apt-get install -fy /tmp/powershell.deb && rm -f /tmp/powershell.deb
 else
   [ "$SYS_ID" == "opensuse" ] && zypper in -y libicu
   curl -Ls https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-linux-x64.tar.gz -o /tmp/powershell.tar.gz

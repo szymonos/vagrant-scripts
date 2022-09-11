@@ -15,8 +15,3 @@ fi
 export SWD=$(pwd)
 # aliases
 alias cds="cd $SWD"
-
-# initialize oh-my-posh prompt
-if type oh-my-posh &>/dev/null; then
-  [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
-fi

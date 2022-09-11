@@ -25,3 +25,10 @@ fi
 if [ -f /etc/profile.d/colorls.sh ]; then
   sed -ri "s/(alias.*='ls.*)'/\1 --time-style=long-iso --group-directories-first'/" /etc/profile.d/colorls.sh
 fi
+
+cat <<'EOF' >>~/.bashrc
+# initialize oh-my-posh prompt
+if type oh-my-posh &>/dev/null; then
+  [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
+fi
+EOF
