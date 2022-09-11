@@ -1,4 +1,6 @@
 #!/bin/bash
+# git aliases
+type git &>/dev/null && [ -f /etc/profile.d/git_aliases ] && source /etc/profile.d/git_aliases
 
 # kubectl autocompletion and aliases
 if type kubectl &>/dev/null; then
@@ -10,8 +12,3 @@ if type kubectl &>/dev/null; then
   }
   [ -f /etc/profile.d/kubectl_aliases ] && source /etc/profile.d/kubectl_aliases
 fi
-
-# environment variables
-export SWD=$(pwd)
-# aliases
-alias cds="cd $SWD"
