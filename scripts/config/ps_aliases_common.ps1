@@ -14,8 +14,8 @@ function ll {
     $arguments = $args.ForEach({ $_ -match ' ' ? "'$_'" : $_ })
     Invoke-Expression "Get-ChildItem $arguments -Force"
 }
-function ls { & /usr/bin/env ls --color=auto --time-style=long-iso --group-directories-first $args }
-function l { & /usr/bin/env ls -1 --color=auto --time-style=long-iso --group-directories-first $args }
+function ls { & /usr/bin/env ls --color=auto --group-directories-first $args }
+function l { & /usr/bin/env ls -1 --color=auto --group-directories-first $args }
 function la { & /usr/bin/env ls -lAh --color=auto --time-style=long-iso --group-directories-first $args }
 function lsa { & /usr/bin/env ls -lah --color=auto --time-style=long-iso --group-directories-first $args }
 function md { mkdir -p $args }
