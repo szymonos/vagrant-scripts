@@ -18,17 +18,25 @@ fi
 
 echo "Install $APP v$REL"
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(fedora|debian|ubuntu|opensuse)' /etc/os-release)
-if [ "$SYS_ID" = 'fedora' ]; then
+SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+
+case $SYS_ID in
+arch)
+  paru -S --noconfirm powershell-bin
+  ;;
+fedora)
   dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-1.rh.x86_64.rpm"
-elif [ "$SYS_ID" = 'debian' ] || [ "$SYS_ID" = 'ubuntu' ]; then
+  ;;
+debian | ubuntu)
   curl -Lsk "https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell_$REL-1.deb_amd64.deb" -o powershell.deb
   dpkg -i powershell.deb && rm -f powershell.deb
-else
+  ;;
+*)
   [ "$SYS_ID" = 'opensuse' ] && zypper in -y libicu
   curl -Lsk https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-linux-x64.tar.gz -o powershell.tar.gz
   mkdir -p /opt/microsoft/powershell/7
   tar zxf powershell.tar.gz -C /opt/microsoft/powershell/7 && rm -f powershell.tar.gz
   chmod +x /opt/microsoft/powershell/7/pwsh
   [ -f /usr/bin/pwsh ] || ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
-fi
+  ;;
+esac

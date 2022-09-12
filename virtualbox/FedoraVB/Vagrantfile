@@ -23,7 +23,7 @@ dnf install -y \\
   fedora-workstation-repositories \\
   dnf-plugins-core 'dnf-command(offline-upgrade)' \\
   bash-completion \\
-  openssl jq nano npm sassc
+  openssl nano vim jq npm sassc
 SCRIPT
 
 script_configure_static_ip = <<-SCRIPT
@@ -114,7 +114,7 @@ Vagrant.configure('2') do |config|
     node.vm.provision 'shell', name: 'set up PS for all users...', path: '../../scripts/provision/setup_pwsh_allusers.sh'
     node.vm.provision 'shell', name: 'set up user profile...', path: '../../scripts/provision/setup_user_profile.sh', privileged: false
     # ~upgrade system
-    node.vm.provision 'shell', name: 'upgrade system...', inline: 'dnf upgrade -y'
+    node.vm.provision 'shell', name: 'upgrade system...', path: '../../scripts/provision/upgrade_system.sh'
     # ~set static ip and reload
     node.vm.provision 'shell', name: 'configure static ip', inline: script_configure_static_ip
     node.vm.provision :reload

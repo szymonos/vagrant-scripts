@@ -2,7 +2,7 @@
 .SYNOPSIS
 Script synopsis.
 .EXAMPLE
-$Path = 'hyperv/CentOS8HV/Vagrantfile'
+$Path = 'hyperv/FedoraHV/Vagrantfile'
 scripts/other/add_ssl_certificate.ps1 -p $Path
 #>
 
@@ -12,6 +12,37 @@ param (
     [Parameter()]
     [string]$Path
 )
+
+function Get-SshInstallScript ([string]$crt) {
+return @"
+#!/bin/bash
+# determine system id
+SYS_ID=`$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+case `$SYS_ID in
+arch)
+  CERT_PATH='/etc/ca-certificates/trust-source/anchors';;
+fedora)
+  CERT_PATH='/etc/pki/ca-trust/source/anchors';;
+debian | ubuntu)
+  CERT_PATH='/usr/local/share/ca-certificates';;
+opensuse)
+  CERT_PATH='/usr/share/pki/trust/anchors/';;
+esac
+# write certificate in CERT_PATH
+cat <<EOF >`$CERT_PATH/root_ca.crt
+$crt
+EOF
+# update certificates
+case `$SYS_ID in
+arch)
+  trust extract-compat;;
+fedora)
+  update-ca-trust;;
+debian | ubuntu | opensuse)
+  update-ca-certificates;;
+esac
+"@
+}
 
 $scriptInstallRootCA = '.tmp/script_install_root_ca.sh'
 # *Content of specified Vagrantfile
@@ -23,7 +54,7 @@ if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
     $chain = (Out-Null | openssl s_client -showcerts -connect www.google.com:443) -join "`n"
     $crt = ($chain | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value[-1]
     # save certificate installation file
-    [IO.File]::WriteAllText($scriptInstallRootCA, "cat <<'EOF' >/etc/pki/ca-trust/source/anchors/pg_root_ca.crt`n${crt}`nEOF`nupdate-ca-trust")
+    [IO.File]::WriteAllText($scriptInstallRootCA, (Get-SshInstallScript $crt))
 }
 
 # add cert installation shell command to Vagrantfile

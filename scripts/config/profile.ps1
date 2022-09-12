@@ -24,18 +24,10 @@ function cds { Set-Location $SWD }
 #endregion
 
 #region environment variables
-$env:OS_ID = (Select-String -Pattern '^ID=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
-$env:OS_VERSION_ID = (Select-String -Pattern '^VERSION_ID=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
 $env:OS_PRETTY_NAME = (Select-String -Pattern '^PRETTY_NAME=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
-$env:PROFILE_PATH = Split-Path $PROFILE.AllUsersAllHosts
+$env:PROFILE_PATH = [IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)
 $env:SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
 $env:COMPUTERNAME = $env:HOSTNAME
-#endregion
-
-#region aliases
-Set-Alias -Name please -Value sudo
-Set-Alias -Name c -Value Clear-Host
-Set-Alias -Name rd -Value rmdir
 #endregion
 
 #region PATH
