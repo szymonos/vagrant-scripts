@@ -21,9 +21,6 @@ echo "Install $APP v$REL"
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
 case $SYS_ID in
-arch)
-  paru -S --noconfirm powershell-bin
-  ;;
 fedora)
   dnf install -y "https://github.com/PowerShell/PowerShell/releases/download/v$REL/powershell-$REL-1.rh.x86_64.rpm"
   ;;

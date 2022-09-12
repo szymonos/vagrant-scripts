@@ -20,11 +20,11 @@ dns1, dns2 = dns.split(',')
 
 # *Scripts
 script_install_packages = <<-SCRIPT
-git clone https://aur.archlinux.org/paru-bin.git && \\
-  cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin
-paru -S --needed --noconfirm \\
+pacman -S --needed --noconfirm \\
   base-devel
   nano vim jq sassc
+su - vagrant -c 'git clone https://aur.archlinux.org/paru-bin.git \\
+  && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
 SCRIPT
 
 script_configure_static_ip = <<-SCRIPT
