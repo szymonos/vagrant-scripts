@@ -8,7 +8,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  paru -S --needed --noconfirm xrdp
+  su - vagrant -c 'paru -S --needed --noconfirm xrdp'
   ;;
 fedora)
   # Load the Hyper-V kernel module

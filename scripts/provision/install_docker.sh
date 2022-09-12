@@ -8,7 +8,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  paru -S --noconfirm --needed docker
+  su - vagrant -c 'paru -S --noconfirm --needed docker'
   ;;
 fedora)
   dnf config-manager --add-repo 'https://download.docker.com/linux/fedora/docker-ce.repo'
