@@ -11,8 +11,8 @@ sudo scripts/provision/setup_pwsh_allusers.sh
 scripts/provision/setup_user_profile.sh
 
 # *Copy profiles
-yes | sudo cp -f scripts/config/*.sh /etc/profile.d/
-yes | sudo cp -f scripts/config/kubectl_aliases /etc/profile.d/
+yes | sudo cp -f scripts/config/bash_profile.sh /etc/profile.d/
+yes | sudo cp -f scripts/config/*_aliases /etc/profile.d/
 yes | sudo cp -f scripts/config/profile.ps1 /opt/microsoft/powershell/7/
 yes | sudo cp -f scripts/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
 if [ "$1" == 'pl' ]; then
