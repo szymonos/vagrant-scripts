@@ -8,7 +8,8 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  pacman -S --needed --noconfirm gnome gnome-extra
+  pacman -Sy --needed --noconfirm gnome gnome-extra
+  systemctl enable gdm
   ;;
 fedora)
   dnf group install -y gnome-desktop

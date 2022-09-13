@@ -20,7 +20,7 @@ dns1, dns2 = dns.split(',')
 
 # *Scripts
 script_install_packages = <<-SCRIPT
-pacman -S --needed --noconfirm \\
+pacman -Sy --needed --noconfirm \\
   base-devel
   nano vim jq sassc
 su - vagrant -c 'git clone https://aur.archlinux.org/paru-bin.git \\
