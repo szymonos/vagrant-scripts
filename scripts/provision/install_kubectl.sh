@@ -8,7 +8,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  pacman -S --noconfirm kubectl
+  pacman -Sy --needed --noconfirm kubectl
   ;;
 fedora)
   [ -f /etc/yum.repos.d/kubernetes.repo ] || cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
