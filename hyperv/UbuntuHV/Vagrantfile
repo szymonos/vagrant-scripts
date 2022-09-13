@@ -19,7 +19,7 @@ switch_ip, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
 # *Scripts
 script_install_packages = <<-SCRIPT
 apt-get update
-apt-get install -y nano vim jq
+apt-get install -y exa nano vim jq
 SCRIPT
 
 script_configure_static_ip = <<-SCRIPT
@@ -98,8 +98,8 @@ Vagrant.configure("2") do |config|
     node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
     node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
     node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
-    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_pwsh_allusers.sh"
-    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_user_profile.sh", privileged: false
+    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
+    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
     # ~upgrade system
     node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     # ~set static ip and reload
