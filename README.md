@@ -4,7 +4,7 @@ Repository for vagrant VM deployments.
 
 ## Repository structure
 
-``` csharp
+``` sh
 .
 ├── .assets         # All helper scripts and assets used for deployments
 │   ├── config        # bash and PowerShell profiles along the themes, aliases, etc...
