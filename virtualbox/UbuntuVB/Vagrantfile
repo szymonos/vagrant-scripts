@@ -18,7 +18,7 @@ hostname = vboxname.downcase
 # *Scripts
 script_install_packages = <<-SCRIPT
 apt-get update
-apt-get install -y exa nano vim jq
+apt-get install -y exa ripgrep nano vim jq
 SCRIPT
 
 script_configure_static_ip = <<-SCRIPT
