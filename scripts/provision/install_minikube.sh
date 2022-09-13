@@ -8,7 +8,7 @@ SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc
 
 case $SYS_ID in
 arch)
-  pacman -S --noconfirm minikube
+  pacman -Sy --needed --noconfirm minikube
   ;;
 fedora)
   dnf install -y https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm
