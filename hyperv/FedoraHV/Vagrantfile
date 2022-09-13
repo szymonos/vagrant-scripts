@@ -1,21 +1,20 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 # *Variables
-box       = 'generic/fedora36'
-provider  = 'hyperv'
-vm_name   = 'FedoraHV'
+box      = "generic/fedora36"
+provider = "hyperv"
+vm_name  = "FedoraHV"
 # network configuration
-nat_net   = '192.168.121.0/24'
-ip_addr   = '192.168.121.88'
-dns       = '9.9.9.9,149.112.112.112'
+nat_net  = "192.168.121.0/24"
+ip_addr  = "192.168.121.88"
+dns      = "9.9.9.9,149.112.112.112"
 # vm configuration
-memory    = 8192
-cpu       = 4
-# vagrant data folder location
-vagrant_home = '~/.vagrant.d'
+memory   = 8192
+cpu      = 4
+
 # calculate variables
-hostname  = vm_name.downcase
-switch_ip, prefix = nat_net.sub(/0(?=\/)/, '1').split('/')
+hostname = vm_name.downcase
+switch_ip, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
 
 # *Scripts
 script_install_packages = <<-SCRIPT
@@ -36,30 +35,33 @@ nmcli connection modify eth0 \\
 SCRIPT
 
 # *VM provisioning
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
-Vagrant.configure('2') do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
+Vagrant.configure("2") do |config|
 
   config.trigger.before :up do |trigger|
-    trigger.info = 'Creating "NATSwitch" Hyper-V switch if it does not exist...'
-    trigger.run = {privileged: 'true', powershell_elevated_interactive: 'true', path: '../../.assets/trigger/create_hyperv_natswitch.ps1', :args => [nat_net, vm_name]}
+    trigger.info = "Creating 'NATSwitch' Hyper-V switch if it does not exist..."
+    trigger.run = {
+      privileged: "true",
+      powershell_elevated_interactive: "true",
+      path: "../../.assets/trigger/create_hyperv_natswitch.ps1", :args => [nat_net, vm_name]
+    }
   end
   config.trigger.before :reload do |trigger|
-    trigger.info = 'Setting Hyper-V switch to "NATSwitch" to allow for static IP...'
-    trigger.run = {privileged: 'true', powershell_elevated_interactive: 'true', path: '../../.assets/trigger/set_hyperv_switch.ps1', :args => [vm_name]}
+    trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
+    trigger.run = {
+      privileged: "true",
+      powershell_elevated_interactive: "true",
+      path: "../../.assets/trigger/set_hyperv_switch.ps1", :args => [vm_name]
+    }
   end
   config.trigger.after :reload do |trigger|
-    trigger.info = 'Add vagrant configuration to ssh config file...'
-    trigger.run = {privileged: 'false', powershell_elevated_interactive: 'false', path: '../../.assets/trigger/set_ssh_config.ps1', :args => [ip_addr, hostname]}
+    trigger.info = "Add vagrant configuration to ssh config file..."
+    trigger.run = {
+      privileged: "false",
+      powershell_elevated_interactive: "false",
+      path: "../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, hostname]
+    }
   end
 
-  # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://vagrantcloud.com/search.
   config.vm.box = box
   config.vm.provider provider
   # timeout setup to overcome security tool related performance impact
@@ -67,10 +69,10 @@ Vagrant.configure('2') do |config|
   config.vm.graceful_halt_timeout = 600
 
   config.vm.hostname = hostname
-  config.vm.network 'public_network'
-  config.vm.synced_folder '.', '/vagrant', disabled: true
-  config.vm.provision 'file', source: '~/.ssh/id_rsa.pub', destination: '~/.ssh/authorized_keys'
-  config.ssh.private_key_path = ['~/.ssh/id_rsa', "#{vagrant_home}/insecure_private_key"]
+  config.vm.network "public_network"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+  config.ssh.private_key_path = ["~/.ssh/id_rsa", "~/.vagrant.d/insecure_private_key"]
   config.ssh.insert_key = false
 
   config.vm.define vm_name do |node|
@@ -83,67 +85,34 @@ Vagrant.configure('2') do |config|
       h.vmname = vm_name
     end
     # install packages
-    node.vm.provision 'shell', name: 'install packages...', inline: script_install_packages
-    node.vm.provision 'shell', name: 'install yq', path: '../../.assets/provision/install_yq.sh'
-    node.vm.provision 'shell', name: 'install docker...', path: '../../.assets/provision/install_docker.sh'
-    node.vm.provision 'shell', name: 'set ulimits on systemd', path: '../../.assets/provision/set_ulimits.sh'
-    node.vm.provision 'shell', name: 'install kubectl...', path: '../../.assets/provision/install_kubectl.sh'
-    node.vm.provision 'shell', name: 'install helm...', path: '../../.assets/provision/install_helm.sh', privileged: false
-    node.vm.provision 'shell', name: 'install minikube...', path: '../../.assets/provision/install_minikube.sh'
-    node.vm.provision 'shell', name: 'install k3d...', path: '../../.assets/provision/install_k3d.sh'
-    node.vm.provision 'shell', name: 'install k9s...', path: '../../.assets/provision/install_k9s.sh'
-    node.vm.provision 'shell', name: 'install flux', path: '../../.assets/provision/install_flux.sh'
-    node.vm.provision 'shell', name: 'install smee', path: '../../.assets/provision/install_smee.sh'
-    node.vm.provision 'shell', name: 'install kubeseal', path: '../../.assets/provision/install_kubeseal.sh'
-    node.vm.provision 'shell', name: 'install kustomize', path: '../../.assets/provision/install_kustomize.sh'
-    node.vm.provision 'shell', name: 'install argo-rollouts cli', path: '../../.assets/provision/install_argorolloutscli.sh'
-    node.vm.provision 'shell', name: 'install Gnome...', path: '../../.assets/provision/install_gnome.sh'
-    node.vm.provision 'shell', name: 'set up Gnome...', path: '../../.assets/provision/setup_gnome.sh', privileged: false
-    node.vm.provision 'shell', name: 'install Edge...', path: '../../.assets/provision/install_edge.sh'
-    node.vm.provision 'shell', name: 'install xrdp...', path: '../../.assets/provision/install_xrdp.sh'
+    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
+    node.vm.provision "shell", name: "install yq", path: "../../.assets/provision/install_yq.sh"
+    node.vm.provision "shell", name: "install docker...", path: "../../.assets/provision/install_docker.sh"
+    node.vm.provision "shell", name: "set ulimits on systemd", path: "../../.assets/provision/set_ulimits.sh"
+    node.vm.provision "shell", name: "install kubectl...", path: "../../.assets/provision/install_kubectl.sh"
+    node.vm.provision "shell", name: "install helm...", path: "../../.assets/provision/install_helm.sh", privileged: false
+    node.vm.provision "shell", name: "install minikube...", path: "../../.assets/provision/install_minikube.sh"
+    node.vm.provision "shell", name: "install k3d...", path: "../../.assets/provision/install_k3d.sh"
+    node.vm.provision "shell", name: "install k9s...", path: "../../.assets/provision/install_k9s.sh"
+    node.vm.provision "shell", name: "install flux", path: "../../.assets/provision/install_flux.sh"
+    node.vm.provision "shell", name: "install smee", path: "../../.assets/provision/install_smee.sh"
+    node.vm.provision "shell", name: "install kubeseal", path: "../../.assets/provision/install_kubeseal.sh"
+    node.vm.provision "shell", name: "install kustomize", path: "../../.assets/provision/install_kustomize.sh"
+    node.vm.provision "shell", name: "install argo-rollouts cli", path: "../../.assets/provision/install_argorolloutscli.sh"
+    node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
+    node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
+    node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+    node.vm.provision "shell", name: "install xrdp...", path: "../../.assets/provision/install_xrdp.sh"
     # # ~setting up profiles
-    node.vm.provision 'shell', name: 'install oh-my-posh...', path: '../../.assets/provision/install_omp.sh'
-    node.vm.provision 'shell', name: 'install PowerShell...', path: '../../.assets/provision/install_pwsh.sh'
-    node.vm.provision 'file', source: '../../.assets/config', destination: '/tmp/'
-    node.vm.provision 'shell', name: 'set up PS for all users...', path: '../../.assets/provision/setup_pwsh_allusers.sh'
-    node.vm.provision 'shell', name: 'set up user profile...', path: '../../.assets/provision/setup_user_profile.sh', privileged: false
+    node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
+    node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
+    node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
+    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_pwsh_allusers.sh"
+    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_user_profile.sh", privileged: false
     # ~upgrade system
-    node.vm.provision 'shell', name: 'upgrade system...', path: '../../.assets/provision/upgrade_system.sh'
+    node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     # ~set static ip and reload
-    node.vm.provision 'shell', name: 'configure static ip', inline: script_configure_static_ip
+    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
     node.vm.provision :reload
   end
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
-  # NOTE: This will enable public access to the opened port
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine and only allow access
-  # via 127.0.0.1 to disable public access
-  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
-
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
-
-  # Create a public network, which generally matched to bridged network.
-  # Bridged networks make the machine appear as another physical device on
-  # your network.
-  # config.vm.network "public_network"
-
-  # Share an additional folder to the guest VM. The first argument is
-  # the path on the host to the actual folder. The second argument is
-  # the path on the guest to mount the folder. And the optional third
-  # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
-
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
-  # View the documentation for the provider you are using for more
-  # information on available options.
 end
