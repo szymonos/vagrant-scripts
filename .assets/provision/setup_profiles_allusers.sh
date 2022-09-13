@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/setup_pwsh_allusers.sh
+.assets/provision/setup_profiles_allusers.sh
 '
 # *Copy global profiles
 if [ -d /tmp/config ]; then
@@ -41,3 +41,6 @@ if type oh-my-posh &>/dev/null; then
   [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
 fi
 EOF
+
+# *set localtime to UTC
+[ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime

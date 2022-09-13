@@ -7,8 +7,8 @@
 # *Install oh-my-posh and PowerShell
 sudo .assets/provision/install_omp.sh
 sudo .assets/provision/install_pwsh.sh
-sudo .assets/provision/setup_pwsh_allusers.sh
-.assets/provision/setup_user_profile.sh
+sudo .assets/provision/setup_profiles_allusers.sh
+.assets/provision/setup_profiles_user.sh
 
 # *Copy profiles
 yes | sudo cp -f .assets/config/bash_* /etc/profile.d/

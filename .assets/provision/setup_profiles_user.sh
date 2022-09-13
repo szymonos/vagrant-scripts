@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/setup_user_profile.sh
+.assets/provision/setup_profiles_user.sh
 '
 
 # *PowerShell profile
