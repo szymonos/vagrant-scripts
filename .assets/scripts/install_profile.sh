@@ -13,7 +13,7 @@ sudo .assets/provision/setup_pwsh_allusers.sh
 # *Copy profiles
 yes | sudo cp -f .assets/config/bash_* /etc/profile.d/
 yes | sudo cp -f .assets/config/profile.ps1 /opt/microsoft/powershell/7/
-yes | sudo cp -f .assets/config/ps_aliases_*.ps1 /usr/local/share/powershell/.assets/
+yes | sudo cp -f .assets/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
 if [ "$1" == 'pl' ]; then
   yes | sudo cp -f .assets/config/theme-pl.omp.json /etc/profile.d/theme.omp.json
 else

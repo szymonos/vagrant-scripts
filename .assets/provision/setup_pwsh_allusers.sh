@@ -7,7 +7,7 @@ if [ -d /tmp/config ]; then
   mv -f /tmp/config/bash_* /etc/profile.d/
   mv -f /tmp/config/theme.omp.json /etc/profile.d/
   mv -f /tmp/config/profile.ps1 /opt/microsoft/powershell/7/
-  mkdir -p /usr/local/share/powershell/.assets/ && mv -f /tmp/config/ps_aliases_*.ps1 /usr/local/share/powershell/.assets/
+  mkdir -p /usr/local/share/powershell/Scripts/ && mv -f /tmp/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
   rm -fr /tmp/config
 fi
 
