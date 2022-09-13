@@ -1,46 +1,43 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 # *Variables
-box       = 'generic/ubuntu2204'
+box       = 'generic/arch'
 provider  = 'hyperv'
-vm_name   = 'UbuntuHV'
+vm_name   = 'ArchHV'
 # network configuration
 nat_net   = '192.168.121.0/24'
-ip_addr   = '192.168.121.61'
+ip_addr   = '192.168.121.91'
 dns       = '9.9.9.9,149.112.112.112'
 # vm configuration
-memory    = 4096
+memory    = 8192
 cpu       = 4
 # vagrant data folder location
 vagrant_home = '~/.vagrant.d'
 # calculate variables
 hostname  = vm_name.downcase
 switch_ip, prefix = nat_net.sub(/0(?=\/)/, '1').split('/')
+dns1, dns2 = dns.split(',')
 
 # *Scripts
 script_install_packages = <<-SCRIPT
-apt-get update
-apt-get install -y nano vim jq
+pacman -S --needed --noconfirm \\
+  base-devel
+  nano vim jq sassc
+su - vagrant -c 'git clone https://aur.archlinux.org/paru-bin.git \\
+  && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
 SCRIPT
 
 script_configure_static_ip = <<-SCRIPT
-cat <<'EOF' >/etc/netplan/01-netcfg.yaml
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    eth0:
-      dhcp4: false
-      dhcp6: false
-      optional: true
-      nameservers:
-        addresses: [#{dns}]
-      addresses: [#{ip_addr}/#{prefix}]
-      routes:
-        - to: default
-          via: #{switch_ip}
+cat <<'EOF' >/etc/systemd/network/eth0.network
+[Match]
+Name=eth0
+
+[Network]
+Address=#{ip_addr}/#{prefix}
+Gateway=#{switch_ip}
+DNS=#{dns1}
+DNS=#{dns2}
 EOF
-netplan generate
 SCRIPT
 
 # *VM provisioning

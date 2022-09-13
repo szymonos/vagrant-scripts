@@ -1,6 +1,6 @@
 #!/bin/bash
 # git aliases
-type git &>/dev/null && [ -f /etc/profile.d/git_aliases ] && source /etc/profile.d/git_aliases
+type git &>/dev/null && [ -f /etc/profile.d/bash_aliases_git ] && source /etc/profile.d/bash_aliases_git
 
 # kubectl autocompletion and aliases
 if type kubectl &>/dev/null; then
@@ -10,5 +10,5 @@ if type kubectl &>/dev/null; then
     echo "$(tput setaf 5)$(tput bold)kubectl $@$(tput sgr0)" >&2
     command kubectl $@
   }
-  [ -f /etc/profile.d/kubectl_aliases ] && source /etc/profile.d/kubectl_aliases
+  [ -f /etc/profile.d/bash_aliases_kubectl ] && source /etc/profile.d/bash_aliases_kubectl
 fi

@@ -4,11 +4,24 @@ scripts/provision/install_gnome.sh
 '
 
 # determine system id
-SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(fedora|debian|ubuntu|opensuse)' /etc/os-release)
-if [ "$SYS_ID" = 'fedora' ]; then
+SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+
+case $SYS_ID in
+arch)
+  pacman -S --needed --noconfirm gnome gnome-extra
+  ;;
+fedora)
   dnf group install -y gnome-desktop
   dnf install -y gnome-tweaks gnome-extensions-app
-elif [ "$SYS_ID" = 'debian' ] || [ "$SYS_ID" = 'ubuntu' ]; then
-  DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions
-fi
+  ;;
+debian | ubuntu)
+  DEBIAN_FRONTEND=noninteractive
+  apt-get update
+  apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions
+  ;;
+opensuse)
+  zypper in -y gnome gnome-tweaks
+  ;;
+esac
+
 systemctl set-default graphical.target
