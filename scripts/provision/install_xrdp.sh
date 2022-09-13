@@ -16,7 +16,6 @@ fedora)
     echo "hv_sock" | sudo tee -a /etc/modules-load.d/hv_sock.conf >/dev/null
   fi
   dnf -y install xrdp tigervnc-server
-  systemctl enable --now xrdp
   # enable firewall rules
   firewall-cmd --add-port=3389/tcp
   firewall-cmd --runtime-to-permanent
@@ -28,3 +27,5 @@ debian | ubuntu)
   ufw allow 3389
   ;;
 esac
+
+systemctl enable --now xrdp
