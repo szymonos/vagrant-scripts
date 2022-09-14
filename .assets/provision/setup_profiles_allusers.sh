@@ -42,7 +42,7 @@ if type oh-my-posh &>/dev/null; then
 fi
 EOF
 # make path autocompletion case insensitive
-echo 'set completion-ignore-case on' >>/etc/inputrc
+grep 'ignore-case on' /etc/inputrc &>/dev/null || echo 'set completion-ignore-case on' >>/etc/inputrc
 
 # *set localtime to UTC
 [ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime
