@@ -41,6 +41,8 @@ if type oh-my-posh &>/dev/null; then
   [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
 fi
 EOF
+# make path autocompletion case insensitive
+echo 'set completion-ignore-case on' >>/etc/inputrc
 
 # *set localtime to UTC
 [ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime
