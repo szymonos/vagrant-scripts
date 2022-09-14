@@ -4,13 +4,13 @@
 '
 
 APP='kubectl-argo-rollouts'
-while [[ -z "$REL" ]]; do
+while [[ -z $REL ]]; do
   REL=$(curl -sk https://api.github.com/repos/argoproj/argo-rollouts/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
 done
 
-if type "$APP" &>/dev/null; then
+if type $APP &>/dev/null; then
   VER=$(kubectl-argo-rollouts version --short | sed -r 's/.* v([0-9\\.]+)\+.*$/\1/')
-  if [ "$REL" = "$VER" ]; then
+  if [ $REL = $VER ]; then
     echo "The latest $APP v$VER is already installed!"
     exit 0
   fi

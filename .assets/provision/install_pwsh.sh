@@ -4,13 +4,13 @@
 '
 
 APP='pwsh'
-while [[ -z "$REL" ]]; do
+while [[ -z $REL ]]; do
   REL=$(curl -sk https://api.github.com/repos/PowerShell/PowerShell/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
 done
 
-if type "$APP" &>/dev/null; then
+if type $APP &>/dev/null; then
   VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
-  if [ "$REL" = "$VER" ]; then
+  if [ $REL = $VER ]; then
     echo "The latest $APP v$VER is already installed!"
     exit 0
   fi
