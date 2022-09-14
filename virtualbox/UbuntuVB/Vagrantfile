@@ -89,6 +89,7 @@ Vagrant.configure("2") do |config|
 
     # install packages
     node.vm.provision "shell", name: "install packages...", inline: script_install_packages
+    node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
     node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
     node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
     # # ~setting up profiles

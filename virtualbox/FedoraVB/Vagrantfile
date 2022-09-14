@@ -98,6 +98,7 @@ Vagrant.configure("2") do |config|
     # install packages
     node.vm.provision "shell", name: "install packages...", inline: script_install_packages
     node.vm.provision "shell", name: "fix secure path setting for sudo", path: "../../.assets/provision/fix_sudo.sh"
+    node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
     node.vm.provision "shell", name: "install yq", path: "../../.assets/provision/install_yq.sh"
     node.vm.provision "shell", name: "install docker...", path: "../../.assets/provision/install_docker.sh"
     node.vm.provision "shell", name: "set ulimits on systemd", path: "../../.assets/provision/set_ulimits.sh"
