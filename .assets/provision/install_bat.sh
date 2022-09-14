@@ -4,13 +4,13 @@
 '
 
 APP='bat'
-while [[ -z "$REL" ]]; do
+while [[ -z $REL ]]; do
   REL=$(curl -sk https://api.github.com/repos/sharkdp/bat/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
 done
 
-if type "$APP" &>/dev/null; then
+if type $APP &>/dev/null; then
   VER=$(bat --version | grep -oP '\b\d+\.\d+\.\d+\b')
-  if [ "$REL" = "$VER" ]; then
+  if [ $REL = $VER ]; then
     echo "The latest $APP v$VER is already installed!"
     exit 0
   fi
