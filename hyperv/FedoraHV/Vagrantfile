@@ -42,7 +42,7 @@ Vagrant.configure("2") do |config|
     trigger.run = {
       privileged: "true",
       powershell_elevated_interactive: "true",
-      path: "../../.assets/trigger/create_hyperv_natswitch.ps1", :args => [nat_net, vm_name]
+      path: "../../.assets/trigger/create_hyperv_natswitch.ps1", :args => [nat_net]
     }
   end
   config.trigger.before :reload do |trigger|
