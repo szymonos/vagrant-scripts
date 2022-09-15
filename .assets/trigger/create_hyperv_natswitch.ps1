@@ -4,17 +4,12 @@
 Script synopsis.
 .PARAMETER NatNetwork
 NAT network CIDR range.
-.PARAMETER VMName
-Name of the virtual machine.
 #>
 
 [CmdletBinding()]
 param (
     [Parameter(Mandatory, Position = 0)]
-    [string]$NatNetwork,
-
-    [Parameter(Mandatory, Position = 1)]
-    [string]$VMName
+    [string]$NatNetwork
 )
 
 # calculate IP address and prefix
