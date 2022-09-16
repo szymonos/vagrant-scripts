@@ -28,19 +28,25 @@ function src { . $PROFILE.CurrentUserAllHosts }
 function wget { & /usr/bin/env wget -c $args }
 function Invoke-SudoPS {
     # determine if the first argument is an alias or function
-    if ($cmd = (Get-Command $args[0] -ErrorAction SilentlyContinue).Definition.Where({ $_ -notmatch '\n' })) {
+    if ($cmd = (Get-Command $args[0] -CommandType Alias, Function -ErrorAction SilentlyContinue).Definition.Where({ $_ -notmatch '\n' })) {
         $args[0] = $cmd.Trim().Replace('$input | ', '').Replace('& /usr/bin/env ', '').Replace(' $args', '')
     }
+    # parse sudo parameters and command with arguments
+    $params = ("$args" | Select-String '^-.+?(?=\s+[^-])').Matches.Value
+    $cmd = ("$args" -replace $params).Trim()
     # run sudo command with resolved commands
-    & /usr/bin/env sudo pwsh -NoProfile -NonInteractive -Command "$args"
+    & /usr/bin/env sudo $params pwsh -NoProfile -NonInteractive -Command "$cmd"
 }
 function Invoke-Sudo {
     # determine if the first argument is an alias or function
-    if ($cmd = (Get-Command $args[0] -ErrorAction SilentlyContinue).Definition.Where({ $_ -notmatch '\n' })) {
+    if ($cmd = (Get-Command $args[0] -CommandType Alias, Function -ErrorAction SilentlyContinue).Definition.Where({ $_ -notmatch '\n' })) {
         $args[0] = $cmd.Trim().Replace('$input | ', '').Replace('& /usr/bin/env ', '').Replace(' $args', '')
     }
+    # parse sudo parameters and command with arguments
+    $params = ("$args" | Select-String '^-.+?(?=\s+[^-])').Matches.Value
+    $cmd = ("$args" -replace $params).Trim()
     # run sudo command with resolved commands
-    & /usr/bin/env sudo bash -c "$args"
+    & /usr/bin/env sudo $params bash -c "$cmd"
 }
 
 # *Aliases
