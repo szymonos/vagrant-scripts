@@ -23,7 +23,7 @@ dnf install -y \\
   fedora-workstation-repositories \\
   dnf-plugins-core 'dnf-command(offline-upgrade)' \\
   bash-completion \\
-  exa ripgrep openssl nano vim jq npm sassc
+  exa ripgrep htop openssl nano vim jq npm sassc
 SCRIPT
 
 script_configure_static_ip = <<-SCRIPT
