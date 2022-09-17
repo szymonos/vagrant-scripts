@@ -1,0 +1,70 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# *Variables
+provider = "virtualbox"
+# vm configuration
+memory   = 2048
+cpu      = 2
+
+# *VMs spec
+vm_boxes = {
+  "rhel" => {
+    :name => "Ansible-RHEL",
+    :ip => "192.168.33.11",
+    :box => "generic/rhel8",
+    :script_packages => "dnf install -y bash-completion",
+  },
+  "centos" => {
+    :name => "Ansible-Centos",
+    :ip => "192.168.33.12",
+    :box => "generic/centos8s",
+    :script_packages => "dnf install -y ansible-core",
+  },
+  "ubuntu" => {
+    :name => "Ansible-Ubuntu",
+    :ip => "192.168.33.13",
+    :box => "generic/ubuntu2004",
+    :script_packages => "export DEBIAN_FRONTEND=noninteractive && apt-get install -qy ansible",
+  }
+}
+
+# *Scripts
+Vagrant.configure("2") do |config|
+  # common config
+  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+  config.ssh.private_key_path = ["~/.ssh/id_rsa", "~/.vagrant.d/insecure_private_key"]
+  config.ssh.insert_key = false
+  vm_boxes.each do |key, value|
+    boxname = value[:name]
+    ip_addr = value[:ip]
+    config.vm.define key do |node|
+      # node triggers
+      node.trigger.after :reload do |trigger|
+        trigger.info = "Add vagrant configuration to ssh config file..."
+        trigger.run = {
+          privileged: "false", powershell_elevated_interactive: "false",
+          path: "../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, boxname.downcase]
+        }
+      end
+      # node setup
+      node.vm.box = value[:box]
+      node.vm.hostname = key
+      node.vm.network "private_network", ip: ip_addr
+      node.vm.provider provider do |vb|
+        vb.name = boxname
+        vb.memory = memory
+        vb.cpus = cpu
+        vb.customize [
+          "modifyvm", :id,
+          "--cableconnected1", "on",
+          "--graphicscontroller", "vmsvga",
+          "--accelerate3d", "on"
+        ]
+      end
+      # node provision
+      node.vm.provision "shell", name: "install packages...", inline: value[:script_packages]
+      node.vm.provision :reload
+    end
+  end
+end
