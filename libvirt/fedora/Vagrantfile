@@ -1,0 +1,81 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# *Variables
+box          = "generic/fedora36"
+provider     = "libvirt"
+vboxname     = "f36"
+hostname     = "fedora"
+# network configuration
+ip_addr      = "192.168.33.31"
+# vm configuration
+memory       = 8192
+cpu          = 4
+# vagrant data location
+vagrant_home ="/mnt/ext/vagrant.d"
+
+# *Scripts
+script_install_packages = <<~SCRIPT
+  dnf install -y \\
+    @development-tools \\
+    fedora-workstation-repositories \\
+    dnf-plugins-core 'dnf-command(offline-upgrade)' \\
+    bash-completion \\
+    ripgrep htop openssl nano vim jq npm sassc
+SCRIPT
+
+script_configure_static_ip = <<-SCRIPT
+nmcli connection modify 'Wired connection 1' ipv4.addresses #{ip_addr}/24
+SCRIPT
+
+# *VM provisioning
+Vagrant.configure("2") do |config|
+  config.vm.provider provider do |v|
+    v.memory = memory
+    v.cpus = cpu
+  end
+  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{vagrant_home}/insecure_private_key"]
+  config.ssh.insert_key = false
+
+  # node configuration
+  config.vm.define vboxname do |node|
+    node.vm.box = box
+    node.vm.hostname = hostname
+    node.vm.network "private_network", ip: ip_addr
+    # install packages
+    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
+    node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
+    node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
+    node.vm.provision "shell", name: "install yq", path: "../../.assets/provision/install_yq.sh"
+    node.vm.provision "shell", name: "install docker...", path: "../../.assets/provision/install_docker.sh"
+    node.vm.provision "shell", name: "set ulimits on systemd", path: "../../.assets/provision/set_ulimits.sh"
+    node.vm.provision "shell", name: "install kubectl...", path: "../../.assets/provision/install_kubectl.sh"
+    node.vm.provision "shell", name: "install helm...", path: "../../.assets/provision/install_helm.sh", privileged: false
+    node.vm.provision "shell", name: "install minikube...", path: "../../.assets/provision/install_minikube.sh"
+    node.vm.provision "shell", name: "install k3d...", path: "../../.assets/provision/install_k3d.sh"
+    node.vm.provision "shell", name: "install k9s...", path: "../../.assets/provision/install_k9s.sh"
+    node.vm.provision "shell", name: "install flux", path: "../../.assets/provision/install_flux.sh"
+    node.vm.provision "shell", name: "install smee", path: "../../.assets/provision/install_smee.sh"
+    node.vm.provision "shell", name: "install kubeseal", path: "../../.assets/provision/install_kubeseal.sh"
+    node.vm.provision "shell", name: "install kustomize", path: "../../.assets/provision/install_kustomize.sh"
+    node.vm.provision "shell", name: "install argo-rollouts cli", path: "../../.assets/provision/install_argorolloutscli.sh"
+    node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
+    node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
+    node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+    # ~setting up profiles
+    node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
+    node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
+    node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
+    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
+    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
+    # ~upgrade system
+    node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
+    # ~reload and set up local ssh configuration
+    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
+    node.vm.provision :reload
+    node.trigger.after :reload do |trigger|
+      trigger.run = { privileged: "false", path: "../../.assets/trigger/set_ssh_config.sh", :args => [ip_addr] }
+    end
+  end
+
+end
