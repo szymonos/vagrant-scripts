@@ -1,0 +1,63 @@
+# *Variables
+provider     = "libvirt"
+# vm configuration
+memory       = 2048
+cpu          = 2
+# vagrant data location
+vagrant_home ="/mnt/ext/vagrant.d"
+
+
+# *VM provisioning
+Vagrant.configure("2") do |config|
+  config.vm.provider provider
+  config.vm.provider provider do |v|
+    v.memory = memory
+    v.cpus = cpu
+  end
+  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+  config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{vagrant_home}/insecure_private_key"]
+  config.ssh.insert_key = false
+
+  config.vm.define "rhel" do |rhel|
+    rhel.vm.box = "generic/rhel8"
+    rhel.vm.hostname =  "rhel"
+    rhel.vm.network "private_network", ip: "192.168.33.11"
+    # ~reload and set up local ssh configuration
+    rhel.vm.provision :reload
+    rhel.trigger.after :reload do |trigger|
+      trigger.run = { privileged: "false", path: "../../.assets/trigger/set_ssh_config.sh", :args => ["192.168.33.11"] }
+    end
+  end
+
+  config.vm.define "centos" do |centos|
+    centos.vm.box = "generic/centos8s"
+    centos.vm.hostname =  "centos"
+    centos.vm.network "private_network", ip: "192.168.33.12"
+    # install packages
+    centos.vm.provision "shell", name: "install packages...", inline: <<~SCRIPT
+      dnf install -y ansible
+    SCRIPT
+    # ~reload and set up local ssh configuration
+    centos.vm.provision :reload
+    centos.trigger.after :reload do |trigger|
+      trigger.run = { privileged: "false", path: "../../.assets/trigger/set_ssh_config.sh", :args => ["192.168.33.12"] }
+    end
+  end
+
+  config.vm.define "ubuntu" do |ubuntu|
+    ubuntu.vm.box = "generic/ubuntu2004"
+    ubuntu.vm.hostname =  "ubuntu"
+    ubuntu.vm.network "private_network", ip: "192.168.33.13"
+    # install packages
+    ubuntu.vm.provision "shell", name: "install packages...", inline: <<~SCRIPT
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get install -qy ansible
+    SCRIPT
+    # ~reload and set up local ssh configuration
+    ubuntu.vm.provision :reload
+    ubuntu.trigger.after :reload do |trigger|
+      trigger.run = { privileged: "false", path: "../../.assets/trigger/set_ssh_config.sh", :args => ["192.168.33.13"] }
+    end
+  end
+
+end

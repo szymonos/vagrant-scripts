@@ -2,8 +2,10 @@
 #Requires -Modules PSReadLine
 
 #region startup settings
-# import posh-git module for git autocompletion.
-Import-Module posh-git; $GitPromptSettings.EnablePromptStatus = $false
+if (Get-Command git -CommandType Application -ErrorAction SilentlyContinue) {
+    # import posh-git module for git autocompletion.
+    Import-Module posh-git; $GitPromptSettings.EnablePromptStatus = $false
+}
 # make PowerShell console Unicode (UTF-8) aware
 $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
 # set culture to English Sweden for ISO-8601 datetime settings
