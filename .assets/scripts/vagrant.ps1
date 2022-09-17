@@ -26,3 +26,13 @@ vagrant up
 
 # Change switch in all existing VMs
 Get-VM | Get-VMNetworkAdapter | Connect-VMNetworkAdapter -SwitchName 'NatSwitch'
+
+# *Install libvirt plugin on Fedora
+# https://vagrant-libvirt.github.io/vagrant-libvirt/
+sudo dnf install -y vagrant libvirt-devel
+sudo dnf install -y @development-tools
+# install plugins
+vagrant plugin install pkg-config
+vagrant plugin install vagrant-libvirt
+# check vagrant plugins
+vagrant plugin list
