@@ -59,7 +59,7 @@ if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
 
 # add cert installation shell command to Vagrantfile
 if (-not ($content | Select-String $scriptInstallRootCA)) {
-    $content = $content -replace '(?<=# install packages)\n', "`n    node.vm.provision 'shell', name: 'install Root CA...', path: '../../.tmp/script_install_root_ca.sh'`n"
+    $content = $content -replace '(?<=# node provision)\n', "`n    node.vm.provision 'shell', name: 'install Root CA...', path: '../../.tmp/script_install_root_ca.sh'`n"
     # save updated Vagrantfile
     [IO.File]::WriteAllText($Path, $content)
 }
