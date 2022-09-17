@@ -12,21 +12,22 @@ param (
     [string]$NatNetwork
 )
 
+$SWITCH_NAME = 'NATSwitch'
 # calculate IP address and prefix
 $ipAddress, $prefix = $NatNetwork.Split('/') -replace '0$', '1'
 
-if ('NATSwitch' -notin (Get-VMSwitch | Select-Object -ExpandProperty Name)) {
-    Write-Host "Creating Internal-only switch named 'NATSwitch' on Windows Hyper-V host..."
-    New-VMSwitch -SwitchName 'NATSwitch' -SwitchType Internal
-    New-NetIPAddress -IPAddress $ipAddress -PrefixLength $prefix -InterfaceAlias 'vEthernet (NATSwitch)'
+if ($SWITCH_NAME -notin (Get-VMSwitch | Select-Object -ExpandProperty Name)) {
+    Write-Host "Creating Internal-only switch named '$SWITCH_NAME' on Windows Hyper-V host..."
+    New-VMSwitch -SwitchName $SWITCH_NAME -SwitchType Internal
+    New-NetIPAddress -IPAddress $ipAddress -PrefixLength $prefix -InterfaceAlias "vEthernet ($SWITCH_NAME)"
     New-NetNat -Name 'NATNetwork' -InternalIPInterfaceAddressPrefix $NatNetwork
 } else {
-    Write-Host "'NATSwitch' for static IP configuration already exists; skipping"
+    Write-Host "'$SWITCH_NAME' for static IP configuration already exists; skipping"
 }
 
-if ($ipAddress -notin (Get-NetIPAddress -InterfaceAlias 'vEthernet (NATSwitch)' | Select-Object -ExpandProperty IPAddress)) {
+if ($ipAddress -notin (Get-NetIPAddress -InterfaceAlias "vEthernet ($SWITCH_NAME)" | Select-Object -ExpandProperty IPAddress)) {
     Write-Host "Registering new IP address '$ipAddress' on Windows Hyper-V host..."
-    New-NetIPAddress -IPAddress $ipAddress -PrefixLength $prefix -InterfaceAlias 'vEthernet (NATSwitch)'
+    New-NetIPAddress -IPAddress $ipAddress -PrefixLength $prefix -InterfaceAlias "vEthernet ($SWITCH_NAME)"
 } else {
     Write-Host "'$ipAddress' for static IP configuration already registered; skipping"
 }
