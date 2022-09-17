@@ -3,7 +3,7 @@
 # *Variables
 box          = "generic/fedora36"
 provider     = "libvirt"
-vboxname     = "f36"
+boxname      = "f36"
 hostname     = "fedora"
 # network configuration
 ip_addr      = "192.168.33.31"
@@ -23,12 +23,15 @@ script_install_packages = <<~SCRIPT
     ripgrep htop openssl nano vim jq npm sassc
 SCRIPT
 
-script_configure_static_ip = <<-SCRIPT
-nmcli connection modify 'Wired connection 1' ipv4.addresses #{ip_addr}/24
+script_configure_static_ip = <<~SCRIPT
+  nmcli connection modify 'Wired connection 1' \\
+    ipv4.method manual \\
+    ipv4.addresses #{ip_addr}/24
 SCRIPT
 
 # *VM provisioning
 Vagrant.configure("2") do |config|
+  # common config
   config.vm.provider provider do |v|
     v.memory = memory
     v.cpus = cpu
@@ -36,13 +39,17 @@ Vagrant.configure("2") do |config|
   config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
   config.ssh.private_key_path = ["~/.ssh/id_rsa", "#{vagrant_home}/insecure_private_key"]
   config.ssh.insert_key = false
-
-  # node configuration
-  config.vm.define vboxname do |node|
+  config.vm.define boxname do |node|
+    # node triggers
+    node.trigger.after :reload do |trigger|
+      trigger.info = "Add vagrant configuration to ssh config file..."
+      trigger.run = { privileged: "false", path: "../../.assets/trigger/set_ssh_config.sh", :args => [ip_addr] }
+    end
+    # node setup
     node.vm.box = box
     node.vm.hostname = hostname
     node.vm.network "private_network", ip: ip_addr
-    # install packages
+    # node provision
     node.vm.provision "shell", name: "install packages...", inline: script_install_packages
     node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
     node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
@@ -73,9 +80,5 @@ Vagrant.configure("2") do |config|
     # ~reload and set up local ssh configuration
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
     node.vm.provision :reload
-    node.trigger.after :reload do |trigger|
-      trigger.run = { privileged: "false", path: "../../.assets/trigger/set_ssh_config.sh", :args => [ip_addr] }
-    end
   end
-
 end
