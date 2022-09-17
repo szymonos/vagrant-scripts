@@ -12,9 +12,9 @@ fedora)
   dnf upgrade -y
   ;;
 debian | ubuntu)
-  DEBIAN_FRONTEND=noninteractive
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update
-  apt-get dist-upgrade -q -y --allow-downgrades --allow-remove-essential --allow-change-held-packages
+  apt-get dist-upgrade -qy --allow-downgrades --allow-remove-essential --allow-change-held-packages
   ;;
 opensuse)
   zypper dup -y
