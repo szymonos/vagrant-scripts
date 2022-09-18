@@ -1,0 +1,31 @@
+- name: User Playbook
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Create user
+      ansible.builtin.user:
+        name: szymono
+        state: present
+        shell: /bin/bash
+        password: "{{ 'Password1' | password_hash('sha512') }}"
+        update_password: on_create
+    - name: Allow SSH password authentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        insertafter: "^PasswordAuthentication"
+        line: "PasswordAuthentication yes"
+      notify: Restart SSHD
+    - name: Escalation of priviliges for szymono
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/szymono
+        content: "szymono ALL=(root) NOPASSWD: ALL"
+        mode: 0440
+        owner: root
+        group: root
+  handlers:
+    - name: Restart SSHD
+      ansible.builtin.service:
+        name: sshd
+        state: restarted

@@ -19,12 +19,12 @@ vm_boxes = {
   "centos" => {
     :ip => "192.168.33.12",
     :box => "generic/centos8s",
-    :script_packages => "dnf install -y ansible-core",
+    :script_packages => "dnf install -y ansible",
   },
   "ubuntu" => {
     :ip => "192.168.33.13",
     :box => "generic/ubuntu2004",
-    :script_packages => "export DEBIAN_FRONTEND=noninteractive && apt-get install -qy ansible",
+    :script_packages => "export DEBIAN_FRONTEND=noninteractive && apt-add-repository -y ppa:ansible/ansible && apt-get install -qy ansible",
   }
 }
 
@@ -51,6 +51,7 @@ Vagrant.configure("2") do |config|
       node.vm.hostname = key
       node.vm.network "private_network", ip: ip_addr
       # node provision
+      node.vm.provision "ansible", playbook: "../../.assets/playbooks/user_create.yaml"
       node.vm.provision "shell", name: "install packages...", inline: value[:script_packages]
       node.vm.provision :reload
     end
