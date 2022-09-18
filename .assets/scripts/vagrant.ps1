@@ -36,3 +36,9 @@ vagrant plugin install pkg-config
 vagrant plugin install vagrant-libvirt
 # check vagrant plugins
 vagrant plugin list
+
+# isntall scp plugin
+vagrant plugin install vagrant-scp
+vagrant ssh-config
+vagrant scp .vagrant/machines/centos/libvirt/private_key rhel:stream.key
+vagrant scp .vagrant/machines/ubuntu/libvirt/private_key rhel:ubuntu.key
