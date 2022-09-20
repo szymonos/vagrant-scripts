@@ -4,7 +4,11 @@
 '
 
 # *PowerShell profile
-pwsh -nop -c 'Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue'
+cat <<'EOF' | pwsh -nop -c -
+$WarningPreference = 'Ignore';
+Set-PSResourceRepository -Name PSGallery -Trusted;
+Enable-ExperimentalFeature PSAnsiRenderingFileInfo, PSNativeCommandArgumentPassing
+EOF
 
 # *bash profile
 # add common bash aliases
