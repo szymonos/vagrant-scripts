@@ -2,5 +2,6 @@
 : '
 .assets/provision/install_flux.sh
 '
-
-curl -sk https://fluxcd.io/install.sh | bash
+while ! type flux &>/dev/null; do
+  curl -sk https://fluxcd.io/install.sh | bash
+done

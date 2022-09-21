@@ -8,8 +8,10 @@ while [[ -z $REL ]]; do
 done
 
 echo "Install CascadiaCode v$REL"
-curl -Lsk -o CascadiaCode.zip "https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
+while [[ ! -f CascadiaCode.zip ]]; do
+  curl -Lsk -o CascadiaCode.zip "https://github.com/microsoft/cascadia-code/releases/download/v${REL}/CascadiaCode-${REL}.zip"
+done
 unzip -q CascadiaCode.zip
 mkdir -p /usr/share/fonts/cascadia-code
-mv ./ttf/* /usr/share/fonts/cascadia-code/
+\cp -rlf ./ttf/* /usr/share/fonts/cascadia-code/
 rm -fr otf ttf woff2 CascadiaCode.zip
