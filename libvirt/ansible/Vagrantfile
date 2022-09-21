@@ -23,7 +23,7 @@ vm_boxes = {
   },
   "ubuntu" => {
     :ip => "192.168.33.13",
-    :box => "generic/ubuntu2004",
+    :box => "generic/ubuntu2204",
     :script_packages => "export DEBIAN_FRONTEND=noninteractive && apt-add-repository -y ppa:ansible/ansible && apt-get install -qy ansible",
   }
 }
