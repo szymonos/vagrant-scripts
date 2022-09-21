@@ -3,4 +3,6 @@
 .assets/provision/install_smee.sh
 '
 
-npm install -g smee-client
+while ! type smee &>/dev/null; do
+  npm install -g smee-client
+done
