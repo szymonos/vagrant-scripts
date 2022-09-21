@@ -17,6 +17,7 @@ if type $APP &>/dev/null; then
 fi
 
 echo "Install $APP v$REL"
-while [[ $(k3d --version | grep -Po '(?<=v)[\d\.]+$') != $REL ]]; do
+while
   curl -sk 'https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh' | bash
-done
+  [[ $(k3d --version | grep -Po '(?<=v)[\d\.]+$') != $REL ]]
+do :; done
