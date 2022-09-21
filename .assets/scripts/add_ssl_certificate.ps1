@@ -14,7 +14,7 @@ param (
 )
 
 function Get-SshInstallScript ([string]$crt) {
-return @"
+    return @"
 #!/bin/bash
 # determine system id
 SYS_ID=`$(grep -oPm1 '^ID(_LIKE)?=\"?\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
@@ -46,7 +46,7 @@ esac
 
 $scriptInstallRootCA = '.tmp/script_install_root_ca.sh'
 # *Content of specified Vagrantfile
-$content = [IO.File]::ReadAllText($Path)
+$content = [IO.File]::ReadAllLines($Path)
 
 # create installation script
 if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
@@ -59,7 +59,8 @@ if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
 
 # add cert installation shell command to Vagrantfile
 if (-not ($content | Select-String $scriptInstallRootCA)) {
-    $content = $content -replace '(?<=# node provision)\n', "`n    node.vm.provision 'shell', name: 'install Root CA...', path: '../../.tmp/script_install_root_ca.sh'`n"
+    $idx = "$($content -match '# node provision')".IndexOf('#')
+    $content = $content -replace '(# node provision)', "`$1`n$(' ' * $idx)node.vm.provision 'shell', name: 'install Root CA...', path: '../../.tmp/script_install_root_ca.sh'"
     # save updated Vagrantfile
-    [IO.File]::WriteAllText($Path, $content)
+    [IO.File]::WriteAllLines($Path, $content)
 }
