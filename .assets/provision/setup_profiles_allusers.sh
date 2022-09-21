@@ -4,21 +4,22 @@
 '
 # *Copy global profiles
 if [ -d /tmp/config ]; then
-  mv -f /tmp/config/bash_* /etc/profile.d/
-  mv -f /tmp/config/theme.omp.json /etc/profile.d/
-  mv -f /tmp/config/profile.ps1 /opt/microsoft/powershell/7/
-  mkdir -p /usr/local/share/powershell/Scripts/ && mv -f /tmp/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
+  \mv -f /tmp/config/bash_* /etc/profile.d/
+  \mv -f /tmp/config/theme.omp.json /etc/profile.d/
+  \mv -f /tmp/config/profile.ps1 /opt/microsoft/powershell/7/
+  mkdir -p /usr/local/share/powershell/Scripts/ && \mv -f /tmp/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
   rm -fr /tmp/config
 fi
 
 # *PowerShell profile
 pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
 # install modules and setup experimental features
-cat <<'EOF' | pwsh -nop -c -
+cat <<'EOF' | sudo pwsh -nop -c -
+$WarningPreference = 'Ignore';
 Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted;
-Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet -WarningAction SilentlyContinue;
-Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet -WarningAction SilentlyContinue;
-Write-Host 'Enable PSAnsiRenderingFileInfo' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo -WarningAction SilentlyContinue
+Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet;
+Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet;
+Write-Host 'Enable ExperimentalFeature' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo, PSNativeCommandArgumentPassing
 EOF
 # add powershell kubectl autocompletion
 if type kubectl &>/dev/null; then

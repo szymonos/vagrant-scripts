@@ -9,7 +9,7 @@ while [[ -z $REL ]]; do
 done
 
 if type $APP &>/dev/null; then
-  VER=$(kubectl-argo-rollouts version --short | sed -r 's/.* v([0-9\\.]+)\+.*$/\1/')
+  VER=$(kubectl-argo-rollouts version --short | grep -Po '(?<=v)[\d\.]+')
   if [ $REL = $VER ]; then
     echo "The latest $APP v$VER is already installed!"
     exit 0
@@ -17,5 +17,7 @@ if type $APP &>/dev/null; then
 fi
 
 echo "Install $APP v$REL"
-curl -LsOk "https://github.com/argoproj/argo-rollouts/releases/download/v${REL}/kubectl-argo-rollouts-linux-amd64"
+while [[ ! -f kubectl-argo-rollouts-linux-amd64 ]]; do
+  curl -LsOk "https://github.com/argoproj/argo-rollouts/releases/download/v${REL}/kubectl-argo-rollouts-linux-amd64"
+done
 install -o root -g root -m 0755 kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts && rm -f kubectl-argo-rollouts-linux-amd64
