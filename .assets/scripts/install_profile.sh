@@ -7,6 +7,7 @@
 # *Install oh-my-posh and PowerShell
 sudo .assets/provision/install_omp.sh
 sudo .assets/provision/install_pwsh.sh
+sudo .assets/provision/install_exa.sh
 sudo .assets/provision/setup_profiles_allusers.sh
 .assets/provision/setup_profiles_user.sh
 
