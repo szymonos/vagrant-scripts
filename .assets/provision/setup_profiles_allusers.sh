@@ -14,7 +14,7 @@ fi
 # *PowerShell profile
 pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
 # install modules and setup experimental features
-cat <<'EOF' | sudo pwsh -nop -c -
+cat <<'EOF' | pwsh -nop -c -
 $WarningPreference = 'Ignore';
 Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted;
 Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet;
@@ -24,7 +24,7 @@ EOF
 # add powershell kubectl autocompletion
 if type kubectl &>/dev/null; then
   cat <<'EOF' | pwsh -nop -c -
-New-Item (Split-Path $PROFILE) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null;
+New-Item (Split-Path $PROFILE.AllUsersCurrentHost)) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null;
 (kubectl completion powershell).Replace("'kubectl'", "'k'") > $PROFILE.AllUsersCurrentHost
 EOF
 fi
