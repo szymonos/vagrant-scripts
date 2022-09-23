@@ -46,4 +46,14 @@ Instead of using `vagrant ssh` for SSH communication, all VMs have copied the us
     └── ...
 ```
 
+## Prerequisites
+
+To provision any box using provided Vagrantfiles you need to have:
+
+- RSA private/public ssh key generated on your host running vagrant commands. Can be generated using command:\
+  `ssh-keygen`\
+  with all the defaults by simply confirming any prompt with Enter,
+- Reload vagrant plugin, can be installed using command:\
+  `vagrant plugin install vagrant-reload`
+
 [^1]: as of now, ssh config entries are added only on Hyper-V and Virtualbox machines
