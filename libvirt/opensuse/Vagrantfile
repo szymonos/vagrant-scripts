@@ -12,11 +12,10 @@ memory       = 8192
 cpu          = 4
 # vagrant data location
 vagrant_home ="/mnt/ext/vagrant.d"
-ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  zypper in -y ripgrep btop openssl nano jq
+  zypper in -y git ripgrep btop openssl jq
 SCRIPT
 
 # *VM provisioning
@@ -37,6 +36,7 @@ Vagrant.configure("2") do |config|
     node.vm.hostname = hostname
     node.vm.network "private_network", ip: ip_addr
     # node provision
+    node.vm.provision "ansible", playbook: "../../.assets/playbooks/setup_user_ssh.yaml"
     node.vm.provision "shell", name: "install packages...", inline: script_install_packages
     node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
     node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
@@ -47,10 +47,6 @@ Vagrant.configure("2") do |config|
     node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
     node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
     node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
-    node.vm.provision "shell",
-      name: "add ssh public key...",
-      path: "../../.assets/provision/set_authorized_keys.sh", :args => [ssh_pub_key],
-      privileged: false
     # ~reload vm
     node.vm.provision :reload
   end
