@@ -21,7 +21,7 @@ debian | ubuntu)
   apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions
   ;;
 opensuse)
-  zypper in -y gnome gnome-tweaks
+  zypper in -y -t pattern gnome
   ;;
 esac
 
