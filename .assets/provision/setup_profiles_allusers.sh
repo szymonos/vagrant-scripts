@@ -24,19 +24,18 @@ EOF
 # add powershell kubectl autocompletion
 if type kubectl &>/dev/null; then
   cat <<'EOF' | pwsh -nop -c -
-New-Item (Split-Path $PROFILE.AllUsersCurrentHost)) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null;
 (kubectl completion powershell).Replace("'kubectl'", "'k'") > $PROFILE.AllUsersCurrentHost
 EOF
 fi
 
 # *bash profile
 # add common bash aliases
-grep 'd/bash_aliases' ~/.bashrc >/dev/null || cat <<'EOF' >>~/.bashrc
+grep 'd/bash_aliases' ~/.bashrc &>/dev/null || cat <<'EOF' >>~/.bashrc
 # common aliases
 [ -f /etc/profile.d/bash_aliases ] && source /etc/profile.d/bash_aliases
 EOF
 # add oh-my-posh invocation to .bashrc
-grep 'oh-my-posh' ~/.bashrc >/dev/null || cat <<'EOF' >>~/.bashrc
+grep 'oh-my-posh' ~/.bashrc &>/dev/null || cat <<'EOF' >>~/.bashrc
 # initialize oh-my-posh prompt
 if type oh-my-posh &>/dev/null; then
   [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
