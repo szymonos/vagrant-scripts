@@ -15,7 +15,7 @@ sudo .assets/provision/setup_profiles_allusers.sh
 sudo \cp -f .assets/config/bash_* /etc/profile.d/
 sudo \cp -f .assets/config/profile.ps1 /opt/microsoft/powershell/7/
 sudo \cp -f .assets/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
-if [ "$1" == 'pl' ]; then
+if [ "$1" = 'pl' ]; then
   sudo \cp -f .assets/config/theme-pl.omp.json /etc/profile.d/theme.omp.json
 else
   sudo \cp -f .assets/config/theme.omp.json /etc/profile.d/
