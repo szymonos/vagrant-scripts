@@ -12,7 +12,6 @@ cpu      = 2
 
 # calculate global variables
 gateway, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
-vagrant_dir = "#{Dir.pwd}/.vagrant"
 
 # *VMs spec
 vm_boxes = {
@@ -93,7 +92,7 @@ Vagrant.configure("2") do |config|
     hostname = boxname.downcase
     ip_addr = value[:ip]
     config.vm.define key do |node|
-      identity_file = "#{vagrant_dir}/machines/#{key}/#{provider}/private_key"
+      identity_file = "#{Dir.pwd}/.vagrant/machines/#{key}/#{provider}/private_key"
       # node triggers
       node.trigger.before :reload do |trigger|
         trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
