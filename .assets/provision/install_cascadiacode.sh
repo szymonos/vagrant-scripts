@@ -13,5 +13,5 @@ while [[ ! -f CascadiaCode.zip ]]; do
 done
 unzip -q CascadiaCode.zip
 mkdir -p /usr/share/fonts/cascadia-code
-\cp -rlf ./ttf/* /usr/share/fonts/cascadia-code/
+\cp -rf ./ttf/* /usr/share/fonts/cascadia-code/
 rm -fr otf ttf woff2 CascadiaCode.zip
