@@ -7,9 +7,6 @@ provider = "virtualbox"
 memory   = 2048
 cpu      = 2
 
-# calculate global variables
-vagrant_dir = "#{Dir.pwd}/.vagrant"
-
 # *VMs spec
 vm_boxes = {
   "rhel" => {
@@ -48,7 +45,7 @@ Vagrant.configure("2") do |config|
     hostname = boxname.downcase
     ip_addr = value[:ip]
     config.vm.define key do |node|
-      identity_file = "#{vagrant_dir}/machines/#{key}/#{provider}/private_key"
+      identity_file = "#{Dir.pwd}/.vagrant/machines/#{key}/#{provider}/private_key"
       # node triggers
       node.trigger.after :reload do |trigger|
         trigger.info = "Add vagrant configuration to ssh config file..."
