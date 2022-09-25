@@ -4,10 +4,10 @@
 # *Variables
 box      = "generic/arch"
 provider = "hyperv"
-boxname  = "ArchHV"
+boxname  = "ArchTest"
 # network configuration
 nat_net  = "192.168.121.0/24"
-ip_addr  = "192.168.121.91"
+ip_addr  = "192.168.121.99"
 dns      = "9.9.9.9,149.112.112.112"
 # vm configuration
 memory   = 4096
@@ -18,16 +18,9 @@ hostname = boxname.downcase
 switch_ip, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
 dns1, dns2 = dns.split(",")
 vagrant_dir = "#{Dir.pwd}/.vagrant"
+identity_file = "#{vagrant_dir}/machines/#{boxname}/#{provider}/private_key"
 
 # *Scripts
-script_install_packages = <<~SCRIPT
-  pacman -Sy --needed --noconfirm \\
-    base-devel \\
-    ripgrep htop nano vim jq sassc
-  su - vagrant -c 'git clone https://aur.archlinux.org/paru-bin.git \\
-    && cd paru-bin && makepkg -si --noconfirm && cd .. && rm -fr paru-bin'
-SCRIPT
-
 script_configure_static_ip = <<~SCRIPT
   cat <<'EOF' >/etc/systemd/network/eth0.network
   [Match]
@@ -55,7 +48,6 @@ Vagrant.configure("2") do |config|
   config.vm.network "public_network"
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.define boxname do |node|
-    identity_file = "#{vagrant_dir}/machines/#{boxname}/#{provider}/private_key"
     # node triggers
     node.trigger.before :reload do |trigger|
       trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
@@ -91,17 +83,6 @@ Vagrant.configure("2") do |config|
     end
     # node provision
     node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
-    node.vm.provision "shell", name: "install packages...", inline: script_install_packages
-    node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
-    node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
-    # ~setting up profiles
-    node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
-    node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
-    node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
-    node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
-    node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
-    # ~upgrade system
-    node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     # ~reload vm
     node.vm.provision :reload
   end
