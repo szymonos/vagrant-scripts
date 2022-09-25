@@ -7,6 +7,9 @@ provider = "virtualbox"
 memory   = 2048
 cpu      = 2
 
+# calculate global variables
+vagrant_dir = "#{Dir.pwd}/.vagrant"
+
 # *VMs spec
 vm_boxes = {
   "rhel" => {
@@ -40,19 +43,25 @@ vm_boxes = {
 # *Scripts
 Vagrant.configure("2") do |config|
   # common config
-  config.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
-  config.ssh.private_key_path = ["~/.ssh/id_rsa", "~/.vagrant.d/insecure_private_key"]
-  config.ssh.insert_key = false
   vm_boxes.each do |key, value|
     boxname = value[:name]
+    hostname = boxname.downcase
     ip_addr = value[:ip]
     config.vm.define key do |node|
+      identity_file = "#{vagrant_dir}/machines/#{key}/#{provider}/private_key"
       # node triggers
       node.trigger.after :reload do |trigger|
         trigger.info = "Add vagrant configuration to ssh config file..."
         trigger.run = {
           privileged: "false", powershell_elevated_interactive: "false",
-          path: "../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, boxname.downcase]
+          path: "../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, hostname, identity_file]
+        }
+      end
+      config.trigger.after :destroy do |trigger|
+        trigger.info = "Cleaning up ssh config, known_hosts files and .vagrant directory..."
+        trigger.run = {
+          privileged: "false", powershell_elevated_interactive: "false",
+          path: "../../.assets/trigger/delete_ssh_config.ps1", :args => [ip_addr, hostname]
         }
       end
       # node setup
