@@ -45,15 +45,27 @@ Vagrant.configure("2") do |config|
   end
   vm_boxes.each do |key, value|
     ip_addr = value[:ip]
+    hostname = "#{File.basename(Dir.pwd)}-#{key}".downcase
     config.vm.define key do |node|
+      identity_file = "#{Dir.pwd}/.vagrant/machines/#{key}/#{provider}/private_key"
       # node triggers
       node.trigger.after :reload do |trigger|
         trigger.info = "Add vagrant configuration to ssh config file..."
-        trigger.run = { privileged: "false", path: "../../.assets/trigger/set_ssh_config.sh", :args => [ip_addr] }
+        trigger.run = {
+          privileged: "false", powershell_elevated_interactive: "false",
+          path: "../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, hostname, identity_file]
+        }
+      end
+      config.trigger.after :destroy do |trigger|
+        trigger.info = "Cleaning up ssh config, known_hosts files and .vagrant directory..."
+        trigger.run = {
+          privileged: "false", powershell_elevated_interactive: "false",
+          path: "../../.assets/trigger/delete_ssh_config.ps1", :args => [ip_addr, hostname]
+        }
       end
       # node setup
       node.vm.box = value[:box]
-      node.vm.hostname = key
+      node.vm.hostname = hostname
       node.vm.network "private_network", ip: ip_addr
       # node provision
       node.vm.provision "shell", name: "run inline script...", inline: value[:script]
