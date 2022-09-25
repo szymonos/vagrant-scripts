@@ -8,7 +8,7 @@ hostname     = "suse"
 # network configuration
 ip_addr      = "192.168.33.5"
 # vm configuration
-memory       = 8192
+memory       = 4096
 cpu          = 4
 # vagrant data location
 vagrant_home ="/mnt/ext/vagrant.d"

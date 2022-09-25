@@ -8,7 +8,8 @@ Name of the host in ssh config file.
 .EXAMPLE
 $IpAddress = '192.168.121.88'
 $HostName = 'fedorahv'
-.assets/trigger/set_ssh_config.ps1 $IpAddress $HostName
+$Path = '~/.ssh/id_rsa'
+.assets/trigger/set_ssh_config.ps1 $IpAddress $HostName $Path
 #>
 [CmdletBinding()]
 param (
@@ -16,50 +17,53 @@ param (
     [string]$IpAddress,
 
     [Parameter(Mandatory, Position = 1)]
-    [string]$HostName
+    [string]$HostName,
+
+    [Parameter(Mandatory, Position = 2)]
+    [string]$Path
 )
 
-$sshConfig = "$HOME/.ssh/config"
-$knownHosts = "$HOME/.ssh/known_hosts"
 $vagrantConfig = @"
 Host $HostName
   HostName $IpAddress
   User vagrant
+  IdentityFile $Path
 "@
 
-Write-Host "Adding $HostName to ssh config..."
+$sshConfig = "$HOME/.ssh/config"
 if (Test-Path $sshConfig -PathType Leaf) {
     $content = [IO.File]::ReadAllText($sshConfig).TrimEnd()
-    if (Select-String -Pattern "HostName $IpAddress" -Path $sshConfig) {
-        # update Host if HostName entry already present
-        $content = $content -replace "Host[^\n]+\n[^\n]+$IpAddress\n[\s\S]+?(?=(\nHost|\z))", $vagrantConfig
-        [IO.File]::WriteAllText($sshConfig, $content)
-    } elseif (Select-String -Pattern "Host $HostName" -Path $sshConfig) {
-        # update HostName if Host entry already present
+    if ($content | Select-String -Pattern "Host $HostName") {
+        Write-Host "Updating '$HostName' entry in ssh config..."
         $content = $content -replace "Host $HostName[\s\S]+?(?=(\nHost|\z))", $vagrantConfig
-        [IO.File]::WriteAllText($sshConfig, $content)
+    } elseif ($content | Select-String -Pattern "HostName $IpAddress") {
+        Write-Host "Updating entry with '$IpAddress' IP in ssh config..."
+        $content = $content -replace "Host[^\n]+\n[^\n]+$IpAddress\n[\s\S]+?(?=(\nHost|\z))", $vagrantConfig
     } else {
-        [IO.File]::WriteAllText($sshConfig, "$content`n$vagrantConfig")
+        Write-Host "Adding '$HostName' entry to ssh config..."
+        $content = "$content`n$vagrantConfig"
     }
 } else {
+    Write-Host "Creating ssh config with '$HostName' entry..."
     New-Item $sshConfig -ItemType File -Force
-    [IO.File]::WriteAllText($sshConfig, $vagrantConfig)
+    $content = $vagrantConfig
 }
+[IO.File]::WriteAllText($sshConfig, $content)
 
+$knownHosts = "$HOME/.ssh/known_hosts"
 if (Test-Path $knownHosts -PathType Leaf) {
-    Write-Host 'Cleaning ssh known_hosts file...'
-    if (Select-String -Pattern "^$IpAddress" -Path $knownHosts) {
-        $content = [IO.File]::ReadAllLines($knownHosts) -notmatch "^$IpAddress"
-        [IO.File]::WriteAllLines($knownHosts, $content)
+    $content = [IO.File]::ReadAllLines($knownHosts)
+    if ($content | Select-String -Pattern "^$IpAddress") {
+        Write-Host "Removing existing '$IpAddress' fingerprint from ssh known_hosts..."
+        [IO.File]::WriteAllLines($knownHosts, ($content -notmatch "^$IpAddress"))
     }
 }
-
 if (Get-Command ssh-keyscan -ErrorAction SilentlyContinue) {
-    Write-Host 'Adding fingerprint to ssh known_hosts file...'
+    Write-Host "Adding '$IpAddress' fingerprint to ssh known_hosts file..."
     do {
-        $knownIP = ssh-keyscan $IpAddress 2>$null
+        [string[]]$knownIP = ssh-keyscan $IpAddress 2>$null
         if ($knownIP) {
-            $knownIP | Add-Content -Path $knownHosts
+            [IO.File]::AppendAllLines($knownHosts, $knownIP)
         }
     } until ($knownIP)
 }

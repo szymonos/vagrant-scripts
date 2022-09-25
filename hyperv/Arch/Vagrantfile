@@ -10,14 +10,14 @@ nat_net  = "192.168.121.0/24"
 ip_addr  = "192.168.121.91"
 dns      = "9.9.9.9,149.112.112.112"
 # vm configuration
-memory   = 8192
+memory   = 4096
 cpu      = 4
 
 # calculate variables
 hostname = boxname.downcase
 switch_ip, prefix = nat_net.sub(/0(?=\/)/, "1").split("/")
 dns1, dns2 = dns.split(",")
-ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+vagrant_dir = "#{Dir.pwd}/.vagrant"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
@@ -55,6 +55,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "public_network"
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.define boxname do |node|
+    identity_file = "#{vagrant_dir}/machines/#{boxname}/#{provider}/private_key"
     # node triggers
     node.trigger.before :reload do |trigger|
       trigger.info = "Setting Hyper-V switch to 'NATSwitch' to allow for static IP..."
@@ -67,7 +68,14 @@ Vagrant.configure("2") do |config|
       trigger.info = "Add vagrant configuration to ssh config file..."
       trigger.run = {
         privileged: "false", powershell_elevated_interactive: "false",
-        path: "../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, hostname]
+        path: "../../.assets/trigger/set_ssh_config.ps1", :args => [ip_addr, hostname, identity_file]
+      }
+    end
+    config.trigger.after :destroy do |trigger|
+      trigger.info = "Cleaning up ssh config, known_hosts files and .vagrant directory..."
+      trigger.run = {
+        privileged: "false", powershell_elevated_interactive: "false",
+        path: "../../.assets/trigger/delete_ssh_config.ps1", :args => [ip_addr, hostname]
       }
     end
     # node setup
@@ -92,10 +100,6 @@ Vagrant.configure("2") do |config|
     node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
     node.vm.provision "shell", name: "set up PS for all users...", path: "../../.assets/provision/setup_profiles_allusers.sh"
     node.vm.provision "shell", name: "set up user profile...", path: "../../.assets/provision/setup_profiles_user.sh", privileged: false
-    node.vm.provision "shell",
-      name: "add ssh public key...",
-      path: "../../.assets/provision/set_authorized_keys.sh", :args => [ssh_pub_key],
-      privileged: false
     # ~upgrade system
     node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     # ~reload vm
