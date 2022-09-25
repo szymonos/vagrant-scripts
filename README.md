@@ -20,8 +20,7 @@ Vagranfile consists of the following sections:
 
 ## SSH configuration
 
-For convenience's sake, VMs are not using vagrant generated ssh keys, but rather the user's key pair from `~/.ssh` folder, to be able to use just ssh command and remote SSH on VSCode easily. The `id_rsa.pub` file is added to `authorized_keys` on the provisioned VM, and `id_rsa` is specified as private key used by vagrant.
-After VM provisioning, its IP is added automatically via PowerShell script to `~/.ssh/config` on the host machine and its fingerprint to `known_hosts` file.[^1]
+For convenience's sake, newly provisioned virtual machines are being added automatically to the SSH config and known_hosts file, so you don't need to use the `vagrant ssh` command which is much slower than the built-in `ssh` on, but also allows you to use the Remote SSH feature of the Visual Studio Code, for remote development. All the VMs should be instantly visible in the VSCode Remote SSH extension pane after provisioning.[^1]
 
 ## Repository structure
 
@@ -51,10 +50,7 @@ After VM provisioning, its IP is added automatically via PowerShell script to `~
 
 To provision any box using provided Vagrantfiles you need to have:
 
-- RSA private/public ssh key generated on your host running vagrant commands. Can be generated using command:\
-  `ssh-keygen`\
-  with all the defaults by simply confirming any prompt with Enter,
-- Reload vagrant plugin. Can be installed using command:\
+- **vagrant-reload** plugin. Can be installed using the command:\
   `vagrant plugin install vagrant-reload`
 
-[^1]: As of now, adding ssh config entries to `.ssh/config` is not supported for libvirt provider.
+[^1]: As of now, adding ssh config entries is not supported for libvirt provider.
