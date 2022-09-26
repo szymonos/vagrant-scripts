@@ -22,10 +22,10 @@ param (
 
 $sshConfig = "$HOME/.ssh/config"
 if (Test-Path $sshConfig -PathType Leaf) {
-    $content = [IO.File]::ReadAllText($sshConfig).TrimEnd()
+    $content = [IO.File]::ReadAllText($sshConfig)
     if ($content | Select-String -Pattern "Host $HostName") {
         Write-Host "Removing '$HostName' entry from ssh config..."
-        $content = $content -replace "Host $HostName[\s\S]+?(?=(\nHost|\z))"
+        $content = $content -replace "Host $HostName[\s\S]+?(?=(\nHost|\z))" -replace '[\r\n](?=[\r\n])'
         [IO.File]::WriteAllText($sshConfig, $content.TrimEnd())
     }
 }
