@@ -23,3 +23,18 @@ if type oh-my-posh &>/dev/null; then
   [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
 fi
 EOF
+
+# *allow reboot/shutdown without asking for password
+cat <<EOF | sudo tee /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules >/dev/null
+/* Allow members of the vagrant group to shutdown or restart
+ * without password authentication.
+ */
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.login1.power-off" ||
+         action.id == "org.freedesktop.login1.reboot") &&
+        subject.isInGroup("vagrant"))
+    {
+        return polkit.Result.YES;
+    }
+});
+EOF

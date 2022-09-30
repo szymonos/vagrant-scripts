@@ -17,3 +17,18 @@ else
 $user ALL=(root) NOPASSWD: ALL
 EOF
 fi
+
+if [[ "$1" = 'remove' ]]; then
+  sudo rm -f /etc/polkit-1/rules.d/49-nopasswd_global.rules
+else
+  cat <<EOF | sudo tee /etc/polkit-1/rules.d/49-nopasswd_global.rules >/dev/null
+/* Allow members of the wheel group to execute any actions
+ * without password authentication, similar to "sudo NOPASSWD:"
+ */
+polkit.addRule(function(action, subject) {
+    if (subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+});
+EOF
+fi
