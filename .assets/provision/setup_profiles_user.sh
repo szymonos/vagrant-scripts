@@ -25,7 +25,7 @@ fi
 EOF
 
 # *allow reboot/shutdown without asking for password
-cat <<EOF | sudo tee /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules >/dev/null
+[[ -d /usr/share/polkit-1/rules.d ]] && cat <<EOF | sudo tee /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules >/dev/null
 /* Allow members of the vagrant group to shutdown or restart
  * without password authentication.
  */
