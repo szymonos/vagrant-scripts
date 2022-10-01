@@ -21,6 +21,14 @@ script_install_packages = <<~SCRIPT
   zypper in -y git ripgrep btop openssl jq
 SCRIPT
 
+script_configure_static_ip = <<~SCRIPT
+  cat <<EOF | tee /etc/sysconfig/network/ifcfg-eth1 >/dev/null
+  BOOTPROTO='static'
+  IPADDR='#{ip_addr}/24'
+  STARTMODE='nfsroot'
+  EOF
+SCRIPT
+
 # *VM provisioning
 Vagrant.configure("2") do |config|
   # common config
@@ -50,6 +58,7 @@ Vagrant.configure("2") do |config|
     node.vm.hostname = hostname
     node.vm.network "private_network", ip: ip_addr
     # node provision
+    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
     node.vm.provision "shell", name: "install packages...", inline: script_install_packages
     node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
     node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
