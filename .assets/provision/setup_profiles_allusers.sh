@@ -46,18 +46,3 @@ grep 'ignore-case on' /etc/inputrc &>/dev/null || echo 'set completion-ignore-ca
 
 # *set localtime to UTC
 [ -f /etc/localtime ] || ln -s /usr/share/zoneinfo/UTC /etc/localtime
-
-# *allow reboot/shutdown without asking for password
-[[ -d /usr/share/polkit-1/rules.d ]] && cat <<EOF | tee /usr/share/polkit-1/rules.d/49-nopasswd_shutdown.rules >/dev/null
-/* Allow members of the vagrant group to shutdown or restart
- * without password authentication.
- */
-polkit.addRule(function(action, subject) {
-    if ((action.id == "org.freedesktop.login1.power-off" ||
-         action.id == "org.freedesktop.login1.reboot") &&
-        subject.isInGroup("vagrant"))
-    {
-        return polkit.Result.YES;
-    }
-});
-EOF
