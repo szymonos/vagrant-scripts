@@ -2,8 +2,7 @@
 # vi: set ft=ruby :
 
 # *Variables
-box        = "generic/ubuntu2204"
-boxversion = "4.1.10"
+box        = "ubuntu/jammy64"
 provider   = "virtualbox"
 boxname    = "UbuntuVB"
 # network configuration
