@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_edge.sh
+sudo .assets/provision/install_edge.sh
 '
 
 # determine system id
@@ -19,13 +19,16 @@ fedora)
   dnf install -y microsoft-edge-stable
   ;;
 debian | ubuntu)
-  [ -f /etc/apt/trusted.gpg.d/microsoft.gpg ] || curl -fsSLk 'https://packages.microsoft.com/keys/microsoft.asc' | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg
-  sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-stable.list'
-  sudo apt update
-  sudo apt install -y microsoft-edge-stable
+  [ -f /etc/apt/trusted.gpg.d/microsoft.gpg ] || curl -fsSLk https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+  install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/
+  sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-stable.list'
+  rm microsoft.gpg
+  apt update
+  apt install -y microsoft-edge-stable
   ;;
 opensuse)
-  sudo zypper addrepo 'https://packages.microsoft.com/yumrepos/edge' edge
+  rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
+  sudo zypper addrepo https://packages.microsoft.com/yumrepos/edge microsoft-edge-stable
   sudo zypper refresh
   sudo zypper install -y microsoft-edge-stable
   ;;

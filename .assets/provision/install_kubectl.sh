@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_kubectl.sh
+sudo .assets/provision/install_kubectl.sh
 '
 
 # determine system id

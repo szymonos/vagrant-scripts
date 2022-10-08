@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_k9s.sh
+sudo .assets/provision/install_k9s.sh
 '
 
 APP='k9s'

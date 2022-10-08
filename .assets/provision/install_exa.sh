@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_exa.sh
+sudo .assets/provision/install_exa.sh
 '
 
 APP='exa'

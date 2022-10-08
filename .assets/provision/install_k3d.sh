@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_k3d.sh
+sudo .assets/provision/install_k3d.sh
 '
 
 APP='k3d'

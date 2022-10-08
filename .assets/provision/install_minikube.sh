@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_minikube.sh
+sudo .assets/provision/install_minikube.sh
 '
 
 # determine system id

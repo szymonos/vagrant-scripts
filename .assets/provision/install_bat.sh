@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_bat.sh
+sudo .assets/provision/install_bat.sh
 '
 
 APP='bat'

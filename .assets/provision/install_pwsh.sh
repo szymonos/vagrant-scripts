@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_pwsh.sh
+sudo .assets/provision/install_pwsh.sh
 '
 
 APP='pwsh'

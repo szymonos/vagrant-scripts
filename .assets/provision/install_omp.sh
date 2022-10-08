@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_omp.sh
+sudo .assets/provision/install_omp.sh
 '
 
 APP='oh-my-posh'
