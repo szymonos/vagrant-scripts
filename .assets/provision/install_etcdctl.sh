@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_etcdctl.sh
+sudo .assets/provision/install_etcdctl.sh
 '
 
 APP='etcdctl'

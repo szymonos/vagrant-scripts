@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_smee.sh
+sudo .assets/provision/install_smee.sh
 '
 
 while ! type smee &>/dev/null; do

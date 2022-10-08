@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_xrdp.sh
+sudo .assets/provision/install_xrdp.sh
 '
 
 # determine system id

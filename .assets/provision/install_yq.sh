@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_yq.sh
+sudo .assets/provision/install_yq.sh
 '
 
 APP='yq'

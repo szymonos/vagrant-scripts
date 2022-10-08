@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_helm.sh
+sudo .assets/provision/install_helm.sh
 '
 
 while ! type helm &>/dev/null; do

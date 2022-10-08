@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_kubeseal.sh
+sudo .assets/provision/install_kubeseal.sh
 '
 
 APP='kubeseal'

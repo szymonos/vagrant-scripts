@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/fix_sudo.sh
+sudo .assets/provision/fix_sudo.sh
 '
 
 cp /etc/sudoers /etc/sudoers.bck

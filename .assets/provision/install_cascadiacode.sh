@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets\provision\install_cascadiacode.sh
+sudo .assets\provision\install_cascadiacode.sh
 '
 
 while [[ -z $REL ]]; do

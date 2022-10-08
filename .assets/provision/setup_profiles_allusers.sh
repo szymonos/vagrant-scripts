@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/setup_profiles_allusers.sh
+sudo .assets/provision/setup_profiles_allusers.sh
 '
 # *Copy global profiles
 if [ -d /tmp/config ]; then

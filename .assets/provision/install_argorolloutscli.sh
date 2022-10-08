@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_argorolloutscli.sh
+sudo .assets/provision/install_argorolloutscli.sh
 '
 
 APP='kubectl-argo-rollouts'
