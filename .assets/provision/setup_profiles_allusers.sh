@@ -2,11 +2,14 @@
 : '
 sudo .assets/provision/setup_profiles_allusers.sh
 '
+# get PowerShell profile path
+PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
+
 # *Copy global profiles
 if [ -d /tmp/config ]; then
   \mv -f /tmp/config/bash_* /etc/profile.d/
   \mv -f /tmp/config/theme.omp.json /etc/profile.d/
-  \mv -f /tmp/config/profile.ps1 /opt/microsoft/powershell/7/
+  \mv -f /tmp/config/profile.ps1 $PROFILE_PATH
   mkdir -p /usr/local/share/powershell/Scripts/ && \mv -f /tmp/config/ps_aliases_*.ps1 /usr/local/share/powershell/Scripts/
   rm -fr /tmp/config
 fi
