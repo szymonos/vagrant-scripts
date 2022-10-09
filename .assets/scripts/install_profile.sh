@@ -24,6 +24,8 @@ else
 fi
 PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
 SCRIPTS_PATH=$(pwsh -nop -c '$env:PSModulePath.Split(":")[1].Replace("Modules", "Scripts")')
+# create scripts folder
+sudo mkdir -p $SCRIPTS_PATH
 
 # bash aliases
 sudo \cp -f .assets/config/bash_* /etc/profile.d/

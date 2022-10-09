@@ -5,6 +5,8 @@ sudo .assets/provision/setup_profiles_allusers.sh
 # get PowerShell profile path
 PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
 SCRIPTS_PATH=$(pwsh -nop -c '$env:PSModulePath.Split(":")[1].Replace("Modules", "Scripts")')
+# create scripts folder
+mkdir -p $SCRIPTS_PATH
 
 # *Copy global profiles
 if [ -d /tmp/config ]; then
