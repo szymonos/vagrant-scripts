@@ -11,7 +11,7 @@ done
 if type $APP &>/dev/null; then
   VER=$(kubeseal --version | grep -Po '[\d\.]+$')
   if [ $REL = $VER ]; then
-    echo "The latest $APP v$VER is already installed!"
+    echo "$APP v$VER is already latest"
     exit 0
   fi
 fi
