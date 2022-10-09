@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_gnome.sh
+sudo .assets/provision/install_gnome.sh
 '
 
 # determine system id

@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/set_ulimits.sh
+sudo .assets/provision/set_ulimits.sh
 '
 
 cat << EOF > /etc/security/limits.d/k8slimits.conf

@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_pwsh.sh
+sudo .assets/provision/install_pwsh.sh
 '
 
 APP='pwsh'
@@ -11,7 +11,7 @@ done
 if type $APP &>/dev/null; then
   VER=$(pwsh -nop -c '$PSVersionTable.PSVersion.ToString()')
   if [ $REL = $VER ]; then
-    echo "The latest $APP v$VER is already installed!"
+    echo "$APP v$VER is already latest"
     exit 0
   fi
 fi

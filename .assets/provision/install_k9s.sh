@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_k9s.sh
+sudo .assets/provision/install_k9s.sh
 '
 
 APP='k9s'
@@ -11,7 +11,7 @@ done
 if type $APP &>/dev/null; then
   VER=$(k9s version -s | grep -Po '(?<=v)[\d\.]+$')
   if [ $REL = $VER ]; then
-    echo "The latest $APP v$VER is already installed!"
+    echo "$APP v$VER is already latest"
     exit 0
   fi
 fi

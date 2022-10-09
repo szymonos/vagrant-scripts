@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_docker.sh
+sudo .assets/provision/install_docker.sh
 '
 
 # determine system id

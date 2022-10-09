@@ -1,6 +1,6 @@
 #!/bin/bash
 : '
-.assets/provision/install_kustomize.sh
+sudo .assets/provision/install_kustomize.sh
 '
 
 while [[ ! -f kustomize ]]; do

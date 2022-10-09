@@ -21,7 +21,7 @@ script_install_packages = <<~SCRIPT
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  grep "eth1:$" /etc/netplan/01-netcfg.yaml >/dev/null || cat <<"EOF" >>/etc/netplan/01-netcfg.yaml
+  grep -qw "eth1:$" /etc/netplan/01-netcfg.yaml || cat <<"EOF" >>/etc/netplan/01-netcfg.yaml
       eth1:
         dhcp4: false
         dhcp6: false

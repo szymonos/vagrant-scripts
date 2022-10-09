@@ -1,8 +1,22 @@
 #!/bin/bash
 : '
-.assets/provision/install_kubectl.sh
+sudo .assets/provision/install_kubectl.sh
 '
 
+APP='kubectl'
+while [[ -z $REL ]]; do
+  REL=$(curl -Lsk https://dl.k8s.io/release/stable.txt)
+done
+
+if type $APP &>/dev/null; then
+  VER=$(kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
+  if [ $REL = $VER ]; then
+    echo "$APP $VER is already latest"
+    exit 0
+  fi
+fi
+
+echo "Install $APP $REL"
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
