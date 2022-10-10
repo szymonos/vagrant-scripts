@@ -18,9 +18,9 @@ sudo .assets/provision/setup_profiles_allusers.sh
 # *Copy config files
 # calculate variables
 if [[ "$1" = 'pl' ]]; then
-  OMP_THEME='.config/.assets/theme-pl.omp.json'
+  OMP_THEME='.assets/config/theme-pl.omp.json'
 else
-  OMP_THEME='.config/.assets/theme.omp.json'
+  OMP_THEME='.assets/config/theme.omp.json'
 fi
 SH_PROFILE_PATH='/etc/profile.d'
 PS_PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
