@@ -29,8 +29,8 @@ function cds { Set-Location $SWD }
 #endregion
 
 #region environment variables
-$env:OS_PRETTY_NAME = (Select-String -Pattern '^PRETTY_NAME=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
-$env:PROFILE_PATH = [IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)
+$env:OS_EDITION = (Select-String -Pattern '^PRETTY_NAME=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
+$env:OMP_PATH = '/usr/local/share/oh-my-posh'
 $env:SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
 $env:COMPUTERNAME = $env:HOSTNAME
 #endregion
@@ -49,9 +49,9 @@ Get-ChildItem -Path $env:SCRIPTS_PATH -Filter 'ps_aliases_*.ps1' -File | ForEach
 }
 
 # startup information
-Write-Host "$($PSStyle.Foreground.BrightWhite)$env:OS_PRETTY_NAME | PowerShell $($PSVersionTable.PSVersion)$($PSStyle.Reset)"
+Write-Host "$($PSStyle.Foreground.BrightWhite)$env:OS_EDITION | PowerShell $($PSVersionTable.PSVersion)$($PSStyle.Reset)"
 
 # initialize oh-my-posh prompt
-if ((Get-Command oh-my-posh -ErrorAction SilentlyContinue) -and (Test-Path '/etc/profile.d/theme.omp.json')) {
-    oh-my-posh --init --shell pwsh --config /etc/profile.d/theme.omp.json | Invoke-Expression
+if ((Get-Command oh-my-posh -ErrorAction SilentlyContinue) -and (Test-Path "$env:OMP_PATH/theme.omp.json")) {
+    oh-my-posh --init --shell pwsh --config "$env:OMP_PATH/theme.omp.json" | Invoke-Expression
 }
