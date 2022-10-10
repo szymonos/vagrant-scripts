@@ -3,7 +3,7 @@
 .assets/scripts/sudoers_nopasswd.sh
 .assets/scripts/sudoers_nopasswd.sh remove
 '
-if [[ $(id -u) -eq 0 ]]; then
+if [[ $EUID -eq 0 ]]; then
   echo -e '\e[91mDo not run the script with sudo!'
   exit 1
 fi
