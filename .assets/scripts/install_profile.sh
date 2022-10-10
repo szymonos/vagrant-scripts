@@ -18,28 +18,30 @@ sudo .assets/provision/setup_profiles_allusers.sh
 # *Copy config files
 # calculate variables
 if [[ "$1" = 'pl' ]]; then
-  OMP_PROFILE='.config/.assets/theme-pl.omp.json'
+  OMP_THEME='.config/.assets/theme-pl.omp.json'
 else
-  OMP_PROFILE='.config/.assets/theme.omp.json'
+  OMP_THEME='.config/.assets/theme.omp.json'
 fi
-PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
-SCRIPTS_PATH=$(pwsh -nop -c '$env:PSModulePath.Split(":")[1].Replace("Modules", "Scripts")')
-# create scripts folder
-sudo mkdir -p $SCRIPTS_PATH
+SH_PROFILE_PATH='/etc/profile.d'
+PS_PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
+PS_SCRIPTS_PATH='/usr/local/share/powershell/Scripts'
+OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 
 # bash aliases
-sudo \cp -f .assets/config/bash_* /etc/profile.d/
-# oh-my-posh profile
-sudo \cp -f $OMP_PROFILE /etc/profile.d/theme.omp.json
+sudo \cp -f .assets/config/bash_* $SH_PROFILE_PATH
+# oh-my-posh theme
+sudo \mkdir -p $OH_MY_POSH_PATH
+sudo \cp -f $OMP_THEME "$OH_MY_POSH_PATH/theme.omp.json"
 # PowerShell profile
-sudo \cp -f .assets/config/profile.ps1 $PROFILE_PATH
+sudo \cp -f .assets/config/profile.ps1 $PS_PROFILE_PATH
 # PowerShell functions
-sudo \cp -f .assets/config/ps_aliases_common.ps1 $SCRIPTS_PATH
+sudo \mkdir -p $PS_SCRIPTS_PATH
+sudo \cp -f .assets/config/ps_aliases_common.ps1 $PS_SCRIPTS_PATH
 # git functions
 if type git &>/dev/null; then
-  sudo \cp -f .assets/config/ps_aliases_git.ps1 $SCRIPTS_PATH
+  sudo \cp -f .assets/config/ps_aliases_git.ps1 $PS_SCRIPTS_PATH
 fi
 # kubectl functions
 if type -f kubectl &>/dev/null; then
-  sudo \cp -f .assets/config/ps_aliases_kubectl.ps1 $SCRIPTS_PATH
+  sudo \cp -f .assets/config/ps_aliases_kubectl.ps1 $PS_SCRIPTS_PATH
 fi

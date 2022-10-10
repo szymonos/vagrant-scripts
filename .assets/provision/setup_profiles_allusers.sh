@@ -2,29 +2,31 @@
 : '
 sudo .assets/provision/setup_profiles_allusers.sh
 '
-# get PowerShell profile path
-PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
-SCRIPTS_PATH=$(pwsh -nop -c '$env:PSModulePath.Split(":")[1].Replace("Modules", "Scripts")')
-# create scripts folder
-mkdir -p $SCRIPTS_PATH
+# path varaibles
+SH_PROFILE_PATH='/etc/profile.d'
+PS_PROFILE_PATH=$(pwsh -nop -c '[IO.Path]::GetDirectoryName($PROFILE.AllUsersAllHosts)')
+PS_SCRIPTS_PATH='/usr/local/share/powershell/Scripts'
+OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 
 # *Copy global profiles
 if [ -d /tmp/config ]; then
   # bash aliases
-  \mv -f /tmp/config/bash_* /etc/profile.d/
+  \mv -f /tmp/config/bash_* $SH_PROFILE_PATH
   # oh-my-posh profile
-  \mv -f /tmp/config/theme.omp.json /etc/profile.d/
+  \mkdir -p $OH_MY_POSH_PATH
+  \mv -f /tmp/config/theme.omp.json $OH_MY_POSH_PATH
   # PowerShell profile
-  \mv -f /tmp/config/profile.ps1 $PROFILE_PATH
+  \mv -f /tmp/config/profile.ps1 $PS_PROFILE_PATH
   # PowerShell functions
-  \mv -f /tmp/config/ps_aliases_common.ps1 $SCRIPTS_PATH
+  \mkdir -p $PS_SCRIPTS_PATH
+  \mv -f /tmp/config/ps_aliases_common.ps1 $PS_SCRIPTS_PATH
   # git functions
   if type git &>/dev/null; then
-    \mv -f /tmp/config/ps_aliases_git.ps1 $SCRIPTS_PATH
+    \mv -f /tmp/config/ps_aliases_git.ps1 $PS_SCRIPTS_PATH
   fi
   # kubectl functions
   if type kubectl &>/dev/null; then
-    \mv -f /tmp/config/ps_aliases_kubectl.ps1 $SCRIPTS_PATH
+    \mv -f /tmp/config/ps_aliases_kubectl.ps1 $PS_SCRIPTS_PATH
   fi
   # clean config folder
   rm -fr /tmp/config
@@ -43,15 +45,17 @@ EOF
 
 # *bash profile
 # add common bash aliases
-grep -qw 'd/bash_aliases' ~/.bashrc || cat <<'EOF' >>~/.bashrc
+grep -qw 'd/bash_aliases' ~/.bashrc || cat <<EOF >>~/.bashrc
 # common aliases
-[ -f /etc/profile.d/bash_aliases ] && source /etc/profile.d/bash_aliases
+if [ -f $SH_PROFILE_PATH/bash_aliases ]; then
+  source $SH_PROFILE_PATH/bash_aliases
+fi
 EOF
-# add oh-my-posh invocation to .bashrc
-grep -qw 'oh-my-posh' ~/.bashrc || cat <<'EOF' >>~/.bashrc
+# add oh-my-posh invocation
+grep -qw 'oh-my-posh' ~/.bashrc || cat <<EOF >>~/.bashrc
 # initialize oh-my-posh prompt
-if type oh-my-posh &>/dev/null; then
-  [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
+if [ -f $OH_MY_POSH_PATH/theme.omp.json ] && type oh-my-posh &>/dev/null; then
+  eval "\$(oh-my-posh --init --shell bash --config $OH_MY_POSH_PATH/theme.omp.json)"
 fi
 EOF
 # make path autocompletion case insensitive
