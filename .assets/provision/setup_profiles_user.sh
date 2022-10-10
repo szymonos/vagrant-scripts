@@ -37,7 +37,7 @@ fi
 EOF
 fi
 # add kubectl autocompletion and aliases
-if ! grep -qw 'kubectl' ~/.bashrc && type -f kubectl -f &>/dev/null; then
+if ! grep -qw 'kubectl' ~/.bashrc && type -f kubectl &>/dev/null; then
   cat <<EOF >>~/.bashrc
 # kubectl autocompletion and aliases
 if type -f kubectl &>/dev/null; then
