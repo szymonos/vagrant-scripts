@@ -21,8 +21,7 @@ script_install_packages = <<~SCRIPT
     @development-tools \\
     fedora-workstation-repositories \\
     dnf-plugins-core 'dnf-command(offline-upgrade)' \\
-    bash-completion \\
-    ripgrep htop openssl nano vim jq npm sassc
+    bash-completion btop openssl nano vim jq npm sassc
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
@@ -90,6 +89,7 @@ Vagrant.configure("2") do |config|
     node.vm.provision "shell", name: "fix secure path setting for sudo", path: "../../.assets/provision/fix_sudo.sh"
     node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
     node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
+    node.vm.provision "shell", name: "install ripgrep...", path: "../../.assets/provision/install_ripgrep.sh"
     node.vm.provision "shell", name: "install yq", path: "../../.assets/provision/install_yq.sh"
     node.vm.provision "shell", name: "install docker...", path: "../../.assets/provision/install_docker.sh"
     node.vm.provision "shell", name: "set ulimits on systemd", path: "../../.assets/provision/set_ulimits.sh"

@@ -21,7 +21,7 @@ vagrant_dir = "#{Dir.pwd}/.vagrant"
 # *Scripts
 script_install_packages = <<~SCRIPT
   apt-get update
-  apt-get install -y ripgrep nano vim jq
+  apt-get install -y nano vim jq
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
@@ -97,6 +97,7 @@ Vagrant.configure("2") do |config|
     node.vm.provision "shell", name: "install packages...", inline: script_install_packages
     node.vm.provision "shell", name: "install exa...", path: "../../.assets/provision/install_exa.sh"
     node.vm.provision "shell", name: "install bat...", path: "../../.assets/provision/install_bat.sh"
+    node.vm.provision "shell", name: "install ripgrep...", path: "../../.assets/provision/install_ripgrep.sh"
     # ~setting up profiles
     node.vm.provision "shell", name: "install oh-my-posh...", path: "../../.assets/provision/install_omp.sh"
     node.vm.provision "shell", name: "install PowerShell...", path: "../../.assets/provision/install_pwsh.sh"
