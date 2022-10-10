@@ -2,6 +2,9 @@
 : '
 .assets/provision/setup_profiles_user.sh
 '
+# path varaibles
+SH_PROFILE_PATH='/etc/profile.d'
+OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 
 # *PowerShell profile
 cat <<'EOF' | pwsh -nop -c -
@@ -18,14 +21,42 @@ fi
 
 # *bash profile
 # add common bash aliases
-grep -qw 'd/bash_aliases' ~/.bashrc || cat <<'EOF' >>~/.bashrc
+grep -qw 'd/bash_aliases' ~/.bashrc || cat <<EOF >>~/.bashrc
 # common aliases
-[ -f /etc/profile.d/bash_aliases ] && source /etc/profile.d/bash_aliases
+if [ -f $SH_PROFILE_PATH/bash_aliases ]; then
+  source $SH_PROFILE_PATH/bash_aliases
+fi
 EOF
-# add oh-my-posh invocation to .bashrc
-grep -qw 'oh-my-posh' ~/.bashrc || cat <<'EOF' >>~/.bashrc
+# add git aliases
+if ! grep -qw 'd/bash_aliases_git' ~/.bashrc && type git &>/dev/null; then
+  cat <<EOF >>~/.bashrc
+# git aliases
+if [ -f $SH_PROFILE_PATH/bash_aliases_git ] && type git &>/dev/null; then
+  source $SH_PROFILE_PATH/bash_aliases_git
+fi
+EOF
+fi
+# add kubectl autocompletion and aliases
+if ! grep -qw 'kubectl' ~/.bashrc && type -f kubectl &>/dev/null; then
+  cat <<EOF >>~/.bashrc
+# kubectl autocompletion and aliases
+if type -f kubectl &>/dev/null; then
+  source <(kubectl completion bash)
+  complete -o default -F __start_kubectl k
+  function kubectl() {
+    echo "\$(tput setaf 5)\$(tput bold)kubectl \@\$(tput sgr0)" >&2
+    command kubectl \$@
+  }
+  if [ -f $SH_PROFILE_PATH/bash_aliases_kubectl ]; then
+    source $SH_PROFILE_PATH/bash_aliases_kubectl
+  fi
+fi
+EOF
+fi
+# add oh-my-posh invocation
+grep -qw 'oh-my-posh' ~/.bashrc || cat <<EOF >>~/.bashrc
 # initialize oh-my-posh prompt
-if type oh-my-posh &>/dev/null; then
-  [ -f /etc/profile.d/theme.omp.json ] && eval "$(oh-my-posh --init --shell bash --config /etc/profile.d/theme.omp.json)"
+if [ -f $OH_MY_POSH_PATH/theme.omp.json ] && type oh-my-posh &>/dev/null; then
+  eval "\$(oh-my-posh --init --shell bash --config $OH_MY_POSH_PATH/theme.omp.json)"
 fi
 EOF
