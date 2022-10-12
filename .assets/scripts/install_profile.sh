@@ -13,6 +13,7 @@ sudo .assets/provision/install_omp.sh
 sudo .assets/provision/install_pwsh.sh
 sudo .assets/provision/install_bat.sh
 sudo .assets/provision/install_exa.sh
+sudo .assets/provision/install_ripgrep.sh
 sudo .assets/provision/setup_profiles_allusers.sh
 .assets/provision/setup_profiles_user.sh
 
@@ -29,7 +30,7 @@ PS_SCRIPTS_PATH='/usr/local/share/powershell/Scripts'
 OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 
 # bash aliases
-sudo \cp -f .assets/config/bash_* $SH_PROFILE_PATH
+sudo \cp -f .assets/config/bash_aliases $SH_PROFILE_PATH
 # oh-my-posh theme
 sudo \mkdir -p $OH_MY_POSH_PATH
 sudo \cp -f $OMP_THEME "$OH_MY_POSH_PATH/theme.omp.json"
@@ -40,9 +41,11 @@ sudo \mkdir -p $PS_SCRIPTS_PATH
 sudo \cp -f .assets/config/ps_aliases_common.ps1 $PS_SCRIPTS_PATH
 # git functions
 if type git &>/dev/null; then
+  sudo \cp -f .assets/config/bash_aliases_git $SH_PROFILE_PATH
   sudo \cp -f .assets/config/ps_aliases_git.ps1 $PS_SCRIPTS_PATH
 fi
 # kubectl functions
 if type -f kubectl &>/dev/null; then
+  sudo \cp -f .assets/config/bash_aliases_kubectl $SH_PROFILE_PATH
   sudo \cp -f .assets/config/ps_aliases_kubectl.ps1 $PS_SCRIPTS_PATH
 fi
