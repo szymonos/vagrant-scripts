@@ -52,7 +52,8 @@ if [ -f $SH_PROFILE_PATH/bash_aliases ]; then
 fi
 EOF
 # add oh-my-posh invocation
-grep -qw 'oh-my-posh' ~/.bashrc || cat <<EOF >>~/.bashrc
+if ! grep -qw 'oh-my-posh' ~/.bashrc && type oh-my-posh &>/dev/null; then
+  cat <<EOF >>~/.bashrc
 # initialize oh-my-posh prompt
 if [ -f $OH_MY_POSH_PATH/theme.omp.json ] && type oh-my-posh &>/dev/null; then
   eval "\$(oh-my-posh --init --shell bash --config $OH_MY_POSH_PATH/theme.omp.json)"
