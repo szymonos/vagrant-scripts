@@ -28,8 +28,8 @@ debian | ubuntu)
   ;;
 opensuse)
   rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
-  sudo zypper addrepo https://packages.microsoft.com/yumrepos/edge microsoft-edge-stable
-  sudo zypper refresh
-  sudo zypper install -y microsoft-edge-stable
+  zypper addrepo https://packages.microsoft.com/yumrepos/edge microsoft-edge-stable
+  zypper refresh
+  zypper install -y microsoft-edge-stable
   ;;
 esac
