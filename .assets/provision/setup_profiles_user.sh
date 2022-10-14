@@ -61,3 +61,4 @@ if [ -f $OH_MY_POSH_PATH/theme.omp.json ] && type oh-my-posh &>/dev/null; then
   eval "\$(oh-my-posh --init --shell bash --config $OH_MY_POSH_PATH/theme.omp.json)"
 fi
 EOF
+fi
