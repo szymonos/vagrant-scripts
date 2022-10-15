@@ -1,4 +1,3 @@
-#!/bin/bash
 alias sudo='sudo '
 alias _='sudo'
 alias please='sudo'
