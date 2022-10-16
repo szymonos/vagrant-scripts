@@ -2,8 +2,8 @@
 #Requires -Modules PSReadLine
 
 #region startup settings
+# import posh-git module for git autocompletion.
 if (Get-Command git -CommandType Application -ErrorAction SilentlyContinue) {
-    # import posh-git module for git autocompletion.
     Import-Module posh-git; $GitPromptSettings.EnablePromptStatus = $false
 }
 # make PowerShell console Unicode (UTF-8) aware
@@ -29,30 +29,31 @@ $SWD = $PWD.Path
 function cds { Set-Location $SWD }
 #endregion
 
-#region environment variables
+#region environment variables and aliases
 $env:OS_EDITION = (Select-String -Pattern '^PRETTY_NAME=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
 $env:OMP_PATH = '/usr/local/share/oh-my-posh'
 $env:SCRIPTS_PATH = '/usr/local/share/powershell/Scripts'
 $env:COMPUTERNAME = $env:HOSTNAME
+# aliases
+(Get-ChildItem -Path $env:SCRIPTS_PATH -Filter 'ps_aliases_*.ps1' -File).ForEach{
+    . $_.FullName
+}
 #endregion
 
 #region PATH
-@("$HOME/.local/bin") | ForEach-Object {
-    if ((Test-Path $_) -and $env:PATH -NotMatch $_) {
-        $env:PATH = [string]::Join(':', $_, $env:PATH)
+@(
+    [IO.Path]::Join($HOME, '.local', 'bin')
+).ForEach{
+    if ((Test-Path $_) -and $env:PATH -NotMatch "$_/?($([IO.Path]::PathSeparator)|$)") {
+        $env:PATH = [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH)
     }
 }
 #endregion
 
-# source ps aliases
-Get-ChildItem -Path $env:SCRIPTS_PATH -Filter 'ps_aliases_*.ps1' -File | ForEach-Object {
-    . $_.FullName
-}
-
-# startup information
+#region startup
 Write-Host "$($PSStyle.Foreground.BrightWhite)$env:OS_EDITION | PowerShell $($PSVersionTable.PSVersion)$($PSStyle.Reset)"
 
-# initialize oh-my-posh prompt
 if ((Get-Command oh-my-posh -ErrorAction SilentlyContinue) -and (Test-Path "$env:OMP_PATH/theme.omp.json")) {
     oh-my-posh --init --shell pwsh --config "$env:OMP_PATH/theme.omp.json" | Invoke-Expression
 }
+#endregion
