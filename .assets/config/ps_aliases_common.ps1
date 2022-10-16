@@ -25,6 +25,7 @@ function nano { & /usr/bin/env nano -W $args }
 function pwsh { & /usr/bin/env pwsh -nol $args }
 function p { & /usr/bin/env pwsh -nol $args }
 function src { . $PROFILE.CurrentUserAllHosts }
+function tree { & /usr/bin/env tree -C $args }
 function wget { & /usr/bin/env wget -c $args }
 function Invoke-SudoPS {
     # determine if the first argument is an alias or function
@@ -50,10 +51,10 @@ function Invoke-Sudo {
 }
 
 # *Aliases
-Set-Alias -Name _ -Value Invoke-SudoPS
+Set-Alias -Name _ -Value Invoke-Sudo
 Set-Alias -Name alias -Value Get-CmdAlias
 Set-Alias -Name c -Value Clear-Host
 Set-Alias -Name rd -Value rmdir
-Set-Alias -Name sudo -Value Invoke-Sudo
+Set-Alias -Name sps -Value Invoke-SudoPS
 Set-Alias -Name type -Value Get-Command
 Set-Alias -Name vi -Value vim
