@@ -15,6 +15,7 @@ fedora)
   dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
   ;;
 debian | ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update && apt-get remove -y docker docker-engine docker.io 2>/dev/null
   apt-get update && apt-get -y install lsb-release gnupg apt-transport-https ca-certificates curl software-properties-common
   curl -fsSLk "https://download.docker.com/linux/$SYS_ID/gpg" | gpg --dearmor -o "/etc/apt/trusted.gpg.d/$SYS_ID.gpg"

@@ -36,6 +36,7 @@ EOF
   dnf install -y kubectl
   ;;
 debian | ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update && apt-get install -y apt-transport-https ca-certificates curl
   # download the Google Cloud public signing key
   curl -fsSLk -o /usr/share/keyrings/kubernetes-archive-keyring.gpg 'https://packages.cloud.google.com/apt/doc/apt-key.gpg'
