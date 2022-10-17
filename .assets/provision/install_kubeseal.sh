@@ -10,7 +10,7 @@ done
 
 if type $APP &>/dev/null; then
   VER=$(kubeseal --version | grep -Po '[\d\.]+$')
-  if [ $REL = $VER ]; then
+  if [ "$REL" = "$VER" ]; then
     echo "$APP v$VER is already latest"
     exit 0
   fi
