@@ -20,8 +20,8 @@ vagrant_dir = "#{Dir.pwd}/.vagrant"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  apt-get update
-  apt-get install -y nano vim jq
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y nano vim jq
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT

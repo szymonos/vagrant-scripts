@@ -49,9 +49,9 @@ vm_boxes = {
     :box => "generic/ubuntu2204",
     :script => <<~SCRIPT
       # install packages
-      export DEBIAN_FRONTEND=noninteractive \\
-        && apt-add-repository -y ppa:ansible/ansible \\
-        && apt-get install -qy ansible
+      export DEBIAN_FRONTEND=noninteractive
+      apt-add-repository -y ppa:ansible/ansible \\
+        && apt-get update && apt-get install -qy ansible
       # set static IP
       cat <<'EOF' >/etc/netplan/01-netcfg.yaml
       network:
