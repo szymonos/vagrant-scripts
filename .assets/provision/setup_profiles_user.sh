@@ -10,14 +10,11 @@ OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 cat <<'EOF' | pwsh -nop -c -
 $WarningPreference = 'Ignore';
 Set-PSResourceRepository -Name PSGallery -Trusted;
-Enable-ExperimentalFeature PSAnsiRenderingFileInfo, PSNativeCommandArgumentPassing
+Enable-ExperimentalFeature PSAnsiRenderingFileInfo, PSNativeCommandArgumentPassing;
+if (Test-Path /usr/bin/kubectl -PathType Leaf) {
+    (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
+}
 EOF
-# add powershell kubectl autocompletion
-if type -f kubectl &>/dev/null; then
-  cat <<'EOF' | pwsh -nop -c -
-(kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE
-EOF
-fi
 
 # *bash profile
 # add common bash aliases
