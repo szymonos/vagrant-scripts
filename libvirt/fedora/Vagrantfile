@@ -21,7 +21,7 @@ script_install_packages = <<~SCRIPT
     @development-tools \\
     fedora-workstation-repositories \\
     dnf-plugins-core 'dnf-command(offline-upgrade)' \\
-    bash-completion btop openssl nano vim jq npm sassc
+    bash-completion btop openssl nano vim tree jq npm sassc
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
