@@ -18,7 +18,7 @@ hostname = "#{File.basename(Dir.pwd)}-#{boxname}".downcase
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  zypper in -y git btop openssl jq
+  zypper in -y git btop openssl tree jq
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
