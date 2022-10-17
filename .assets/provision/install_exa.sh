@@ -29,7 +29,7 @@ fedora)
   dnf install -y exa && INSTALLED=true
   ;;
 debian | ubuntu)
-  apt install -y exa && INSTALLED=true
+  apt-get update && apt-get install -y exa && INSTALLED=true
   ;;
 opensuse)
   zypper in -y exa && INSTALLED=true

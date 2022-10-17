@@ -23,8 +23,7 @@ debian | ubuntu)
   install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/
   sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-stable.list'
   rm microsoft.gpg
-  apt update
-  apt install -y microsoft-edge-stable
+  apt-get update && apt-get install -y microsoft-edge-stable
   ;;
 opensuse)
   rpm --import 'https://packages.microsoft.com/keys/microsoft.asc'
