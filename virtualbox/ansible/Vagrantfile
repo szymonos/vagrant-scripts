@@ -30,9 +30,9 @@ vm_boxes = {
     :ip => "192.168.33.13",
     :box => "ubuntu/jammy64",
     :script => <<~SCRIPT
-      export DEBIAN_FRONTEND=noninteractive \\
-        && apt-add-repository -y ppa:ansible/ansible \\
-        && apt-get install -qy ansible
+      export DEBIAN_FRONTEND=noninteractive
+      apt-add-repository -y ppa:ansible/ansible \\
+        && apt-get update && apt-get install -qy ansible
     SCRIPT
   }
 }
