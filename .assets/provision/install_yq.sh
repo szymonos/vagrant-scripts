@@ -10,7 +10,7 @@ done
 
 if type $APP &>/dev/null; then
   VER=$(yq --version | grep -Po '(?<=version )[\d\.]+$')
-  if [ $REL = $VER ]; then
+  if [ "$REL" = "$VER" ]; then
     echo "$APP v$VER is already latest"
     exit 0
   fi
