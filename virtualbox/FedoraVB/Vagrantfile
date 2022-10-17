@@ -3,7 +3,6 @@
 
 # *Variables
 box        = "generic/fedora36"
-boxversion = "4.1.10"
 provider   = "virtualbox"
 boxname    = "FedoraVB"
 # network configuration
