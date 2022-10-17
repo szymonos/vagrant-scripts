@@ -10,7 +10,7 @@ done
 
 if type $APP &>/dev/null; then
   VER=$(kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
-  if [ $REL = $VER ]; then
+  if [ "$REL" = "$VER" ]; then
     echo "$APP $VER is already latest"
     exit 0
   fi
