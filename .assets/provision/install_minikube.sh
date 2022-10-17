@@ -27,6 +27,7 @@ fedora)
   dnf install -y "https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm"
   ;;
 debian | ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f minikube_latest_amd64.deb ]]; do
     curl -LOsk "https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb"
   done

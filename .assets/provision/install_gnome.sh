@@ -16,7 +16,7 @@ fedora)
   dnf install -y gnome-tweaks gnome-extensions-app
   ;;
 debian | ubuntu)
-  DEBIAN_FRONTEND=noninteractive
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update && apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions
   ;;
 opensuse)

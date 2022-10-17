@@ -21,8 +21,8 @@ fedora)
   firewall-cmd --runtime-to-permanent
   ;;
 debian | ubuntu)
-  apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y xrdp tigervnc-standalone-server tigervnc-xorg-extension tigervnc-viewer
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y xrdp tigervnc-standalone-server tigervnc-xorg-extension tigervnc-viewer
   usermod -a -G ssl-cert xrdp
   ufw allow 3389
   ;;

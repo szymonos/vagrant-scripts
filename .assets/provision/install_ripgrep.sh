@@ -28,6 +28,7 @@ fedora)
   dnf install -y ripgrep
   ;;
 debian | ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update && apt-get install -y ripgrep
   ;;
 opensuse)

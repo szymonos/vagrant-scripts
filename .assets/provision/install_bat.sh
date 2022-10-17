@@ -29,6 +29,7 @@ fedora)
   dnf install -y bat && INSTALLED=true
   ;;
 debian | ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
   while [[ ! -f bat.deb ]]; do
     curl -Lsk -o bat.deb "https://github.com/sharkdp/bat/releases/download/v${REL}/bat_${REL}_amd64.deb"
   done

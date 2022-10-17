@@ -29,6 +29,7 @@ fedora)
   dnf install -y exa && INSTALLED=true
   ;;
 debian | ubuntu)
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update && apt-get install -y exa && INSTALLED=true
   ;;
 opensuse)
