@@ -17,8 +17,7 @@ fedora)
   ;;
 debian | ubuntu)
   DEBIAN_FRONTEND=noninteractive
-  apt-get update
-  apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions
+  apt-get update && apt-get install -y ubuntu-desktop-minimal gnome-tweaks gnome-shell-extensions
   ;;
 opensuse)
   zypper in -y -t pattern gnome

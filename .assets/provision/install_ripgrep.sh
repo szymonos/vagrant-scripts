@@ -28,7 +28,7 @@ fedora)
   dnf install -y ripgrep
   ;;
 debian | ubuntu)
-  apt install -y ripgrep
+  apt-get update && apt-get install -y ripgrep
   ;;
 opensuse)
   zypper in -y ripgrep
