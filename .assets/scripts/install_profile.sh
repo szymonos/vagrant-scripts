@@ -8,7 +8,7 @@ if [[ $EUID -eq 0 ]]; then
   exit 1
 fi
 
-# *Install oh-my-posh and PowerShell
+# *Install packages and setup profiles
 sudo .assets/provision/install_base.sh
 sudo .assets/provision/install_omp.sh
 sudo .assets/provision/install_pwsh.sh
