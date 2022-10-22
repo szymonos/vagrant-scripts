@@ -9,6 +9,7 @@ if [[ $EUID -eq 0 ]]; then
 fi
 
 # *Install oh-my-posh and PowerShell
+sudo .assets/provision/install_base.sh
 sudo .assets/provision/install_omp.sh
 sudo .assets/provision/install_pwsh.sh
 sudo .assets/provision/install_bat.sh
