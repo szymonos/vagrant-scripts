@@ -18,6 +18,6 @@ fi
 
 echo -e "\e[96minstalling $APP v$REL\e[0m"
 while [[ ! -f yq_linux_amd64 ]]; do
-  curl -Lsk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx yq_linux_amd64
+  curl -Lsk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx ./yq_linux_amd64
 done
-install -o root -g root -m 0755 yq_linux_amd64 /usr/local/bin/yq && rm -f yq_linux_amd64 yq.1 install-man-page.sh
+install -o root -g root -m 0755 yq_linux_amd64 /usr/local/bin/yq && rm -f yq_linux_amd64
