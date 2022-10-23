@@ -16,7 +16,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-echo -e "\e[96mInstall $APP v$REL\e[0m"
+echo -e "\e[96minstalling $APP v$REL\e[0m"
 while
   curl -sk 'https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh' | bash
   [[ $(k3d --version | grep -Po '(?<=v)[\d\.]+$') != $REL ]]

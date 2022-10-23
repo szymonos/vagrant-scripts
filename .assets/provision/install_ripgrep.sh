@@ -16,7 +16,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-echo -e "\e[96mInstall $APP v$REL\e[0m"
+echo -e "\e[96minstalling $APP v$REL\e[0m"
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|centos|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 

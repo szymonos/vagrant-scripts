@@ -16,7 +16,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-echo -e "\e[96mInstall $APP v$REL\e[0m"
+echo -e "\e[96minstalling $APP v$REL\e[0m"
 while [[ ! -f kubeseal ]]; do
   curl -Lsk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -zx kubeseal
 done
