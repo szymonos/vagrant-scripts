@@ -9,8 +9,9 @@ OH_MY_POSH_PATH='/usr/local/share/oh-my-posh'
 # *PowerShell profile
 cat <<'EOF' | pwsh -nop -c -
 $WarningPreference = 'Ignore';
-Set-PSResourceRepository -Name PSGallery -Trusted;
-Enable-ExperimentalFeature PSAnsiRenderingFileInfo, PSNativeCommandArgumentPassing;
+if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) { Set-PSResourceRepository -Name PSGallery -Trusted };
+if (-not $PSNativeCommandArgumentPassing) { Enable-ExperimentalFeature PSNativeCommandArgumentPassing };
+if (-not $PSStyle) { Enable-ExperimentalFeature PSAnsiRenderingFileInfo };
 if (Test-Path /usr/bin/kubectl) { (/usr/bin/kubectl completion powershell).Replace("'kubectl'", "'k'") >$PROFILE }
 EOF
 
