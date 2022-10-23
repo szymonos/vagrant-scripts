@@ -41,6 +41,15 @@ param (
     [string]$gh_user
 )
 
+# change temporarily encoding to utf-16 to match wsl output
+[Console]::OutputEncoding = [System.Text.Encoding]::Unicode
+$distroExists = [bool](wsl.exe -l | Select-String -Pattern "\b$distro\b")
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+if (-not $distroExists) {
+    Write-Warning "Specified distro doesn't exist!"
+    break
+}
+
 # *install packages
 Write-Host 'installing base packages...' -ForegroundColor Green
 wsl.exe --distribution $distro --user root --exec .assets/provision/install_base.sh
