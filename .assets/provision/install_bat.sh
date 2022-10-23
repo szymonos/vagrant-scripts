@@ -11,12 +11,12 @@ done
 if type $APP &>/dev/null; then
   VER=$(bat --version | grep -Po '(?<=^bat )[\d\.]+')
   if [ "$REL" = "$VER" ]; then
-    echo "$APP v$VER is already latest"
+    echo -e "\e[36m$APP v$VER is already latest\e[0m"
     exit 0
   fi
 fi
 
-echo "Install $APP v$REL"
+echo -e "\e[96minstalling $APP v$REL\e[0m"
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 
@@ -43,6 +43,6 @@ $INSTALLED && exit 0
 
 # install from binary if above didn't work
 while [[ ! -d "bat-v${REL}-x86_64-unknown-linux-gnu" ]]; do
-  curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -xz
+  curl -Lsk "https://github.com/sharkdp/bat/releases/download/v${REL}/bat-v${REL}-x86_64-unknown-linux-gnu.tar.gz" | tar -zx
 done
 install -o root -g root -m 0755 "bat-v${REL}-x86_64-unknown-linux-gnu/bat" /usr/bin/bat && rm -fr "bat-v${REL}-x86_64-unknown-linux-gnu"

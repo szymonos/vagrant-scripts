@@ -33,14 +33,15 @@ if [ -d /tmp/config ]; then
 fi
 
 # *PowerShell profile
-pwsh -nop -c 'Write-Host "Install PowerShellGet" && Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force -WarningAction SilentlyContinue'
+pwsh -nop -c 'if (-not ((Get-Module PowerShellGet -ListAvailable -ErrorAction SilentlyContinue).Version.Major -ge 3)) { Install-Module PowerShellGet -AllowPrerelease -Scope AllUsers -Force }'
 # install modules and setup experimental features
 cat <<'EOF' | pwsh -nop -c -
 $WarningPreference = 'Ignore';
-Write-Host 'Set PSGallery Trusted' && Set-PSResourceRepository -Name PSGallery -Trusted;
-Write-Host 'Install PSReadLine' && Install-PSResource -Name PSReadLine -Scope AllUsers -Quiet;
-Write-Host 'Install posh-git' && Install-PSResource -Name posh-git -Scope AllUsers -Quiet;
-Write-Host 'Enable ExperimentalFeature' && Enable-ExperimentalFeature PSAnsiRenderingFileInfo, PSNativeCommandArgumentPassing
+if (-not (Get-PSResourceRepository -Name PSGallery).Trusted) { Set-PSResourceRepository -Name PSGallery -Trusted };
+if (-not ((Get-Module PSReadLine -ListAvailable -ErrorAction SilentlyContinue).Version.Minor -ge 2)) { Install-PSResource -Name PSReadLine -Scope AllUsers };
+if (-not (Get-Module posh-git -ListAvailable)) { Install-PSResource -Name posh-git -Scope AllUsers };
+if (-not $PSNativeCommandArgumentPassing) { Enable-ExperimentalFeature PSNativeCommandArgumentPassing };
+if (-not $PSStyle) { Enable-ExperimentalFeature PSAnsiRenderingFileInfo };
 EOF
 
 # *bash profile
