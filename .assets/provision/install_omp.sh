@@ -16,7 +16,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-echo -e "\e[96mInstall $APP v$REL\e[0m"
+echo -e "\e[96minstalling $APP v$REL\e[0m"
 while [[ ! -f posh-linux-amd64 ]]; do
   curl -LsOk 'https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64'
 done

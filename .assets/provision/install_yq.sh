@@ -16,7 +16,7 @@ if type $APP &>/dev/null; then
   fi
 fi
 
-echo -e "\e[96mInstall $APP v$REL\e[0m"
+echo -e "\e[96minstalling $APP v$REL\e[0m"
 while [[ ! -f yq_linux_amd64 ]]; do
   curl -Lsk "https://github.com/mikefarah/yq/releases/download/v${REL}/yq_linux_amd64.tar.gz" | tar -zx yq_linux_amd64
 done
