@@ -11,12 +11,12 @@ done
 if type $APP &>/dev/null; then
   VER=$(exa --version | grep -Po '(?<=^v)[\d\.]+')
   if [ "$REL" = "$VER" ]; then
-    echo "$APP v$VER is already latest"
+    echo -e "\e[36m$APP v$VER is already latest\e[0m"
     exit 0
   fi
 fi
 
-echo "Install $APP v$REL"
+echo -e "\e[96mInstall $APP v$REL\e[0m"
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*\K(arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 

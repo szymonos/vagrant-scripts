@@ -11,13 +11,13 @@ done
 if type $APP &>/dev/null; then
   VER=$(kubeseal --version | grep -Po '[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
-    echo "$APP v$VER is already latest"
+    echo -e "\e[36m$APP v$VER is already latest\e[0m"
     exit 0
   fi
 fi
 
-echo "Install $APP v$REL"
+echo -e "\e[96mInstall $APP v$REL\e[0m"
 while [[ ! -f kubeseal ]]; do
-  curl -Lsk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -xz
+  curl -Lsk "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${REL}/kubeseal-${REL}-linux-amd64.tar.gz" | tar -zx kubeseal
 done
-install -o root -g root -m 0755 kubeseal /usr/local/bin/kubeseal && rm -f kubeseal LICENSE README.md
+install -o root -g root -m 0755 kubeseal /usr/local/bin/kubeseal && rm -f kubeseal

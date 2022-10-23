@@ -11,14 +11,14 @@ done
 if type $APP &>/dev/null; then
   VER=$(etcdctl version | grep -Po '(?<=etcdctl version: )[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
-    echo "$APP v$VER is already latest"
+    echo -e "\e[36m$APP v$VER is already latest\e[0m"
     exit 0
   fi
 fi
 
-echo "Install $APP v$REL"
+echo -e "\e[96mInstall $APP v$REL\e[0m"
 while [[ ! -f kubectl-argo-rollouts-linux-amd64 ]]; do
   'https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz'
-  curl -Lsk "https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz" | tar -xz
+  curl -Lsk "https://github.com/etcd-io/etcd/releases/download/v${REL}/etcd-v${REL}-linux-amd64.tar.gz" | tar -zx
 done
 install -o root -g root -m 0755 "etcd-v${REL}-linux-amd64/etcdctl" /usr/local/bin/etcdctl && rm -fr "etcd-v${REL}-linux-amd64"
