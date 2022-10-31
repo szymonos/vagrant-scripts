@@ -34,7 +34,6 @@ if ${INSTALL_DASH}; then
 fi
 # button-layout
 gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
-gsettings get org.gnome.desktop.wm.preferences button-layout
 # keyboard repat and delay settings
 gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 24
 gsettings set org.gnome.desktop.peripherals.keyboard delay 250
