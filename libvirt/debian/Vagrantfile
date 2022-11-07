@@ -2,65 +2,46 @@
 # vi: set ft=ruby :
 
 # *Variables
-box      = "generic/fedora36"
-provider = "virtualbox"
-boxname  = "Fedora"
+box      = "generic/debian11"
+provider = "libvirt"
+boxname  = "debian"
 # network configuration
-ip_addr  = "192.168.56.57"
+net_name = "vagrant-33"
+ip_addr  = "192.168.33.51"
 # vm configuration
 memory   = 8192
-cpu      = 2
+cpu      = 4
 # conditions
-install_packages   = true
-install_kubernetes = true
+install_packages   = false
+install_kubernetes = false
 install_gnome      = true
-setup_bash         = true
-setup_pwsh         = true
-upgrade_system     = true
+install_edge       = false
+setup_bash         = false
+setup_pwsh         = false
+upgrade_system     = false
+reload             = false
 
 # calculate global variables
-vmname   = "Vg-#{boxname}"
-hostname = "#{vmname.downcase}-vb"
+hostname = "vg-#{boxname.downcase}"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  dnf install -y \\
-    @development-tools \\
-    fedora-workstation-repositories \\
-    dnf-plugins-core 'dnf-command(offline-upgrade)' \\
-    btop
-SCRIPT
-
-script_configure_static_ip = <<~SCRIPT
-  nmcli connection modify 'Wired connection 1' \\
-    ipv4.method manual \\
-    ipv4.addresses #{ip_addr}/24
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y nano
 SCRIPT
 
 # *VM provisioning
 Vagrant.configure("2") do |config|
-  # common triggers
-  config.trigger.before :up do |trigger|
-    trigger.info = "Cleaning up VirtualBox VM folder..."
-    trigger.run = {
-      privileged: "false", powershell_elevated_interactive: "false",
-      path: "../../.assets/trigger/cleanup_vbox_vm.ps1", :args => [boxname]
-    }
-  end
   # common config
-  if Vagrant.has_plugin?("vagrant-vbguest") then
-    config.vbguest.auto_update = false
+  config.vm.provider provider do |libvirt|
+    libvirt.default_prefix = "vg_"
+    libvirt.management_network_keep = true
+    libvirt.memory = memory
+    libvirt.cpus = cpu
   end
-  config.vm.boot_timeout = 300
-  config.vm.graceful_halt_timeout = 300
-  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
   config.vm.define boxname do |node|
     identity_file = "#{Dir.pwd}/.vagrant/machines/#{boxname}/#{provider}/private_key"
     # node triggers
-    node.trigger.after :up do |trigger|
-      trigger.info = "Set inotify settings..."
-      trigger.run_remote = { privileged: true, path: "../../.assets/trigger/set_inotify.sh" }
-    end
     node.trigger.after :reload do |trigger|
       trigger.info = "Add vagrant configuration to ssh config file..."
       trigger.run = {
@@ -78,21 +59,13 @@ Vagrant.configure("2") do |config|
     # node setup
     node.vm.box = box
     node.vm.hostname = hostname
-    node.vm.network "private_network", ip: ip_addr
-    node.vm.provider provider do |vb|
-      vb.name = vmname
-      vb.memory = memory
-      vb.cpus = cpu
-      vb.customize [
-        "modifyvm", :id,
-        "--cableconnected1", "on",
-        "--graphicscontroller", "vmsvga",
-        "--accelerate3d", "on"
-      ]
-    end
+    node.vm.network :private_network,
+      :ip => ip_addr,
+      :libvirt__network_name => net_name,
+      :libvirt__dhcp_enabled => false,
+      :libvirt__always_destroy => false,
+      :autostart => true
     # node provision
-    node.vm.provision "shell", name: "configure static ip", inline: script_configure_static_ip
-    node.vm.provision "shell", name: "fix secure path setting for sudo", path: "../../.assets/provision/fix_sudo.sh"
     node.vm.provision "shell", name: "install base...", path: "../../.assets/provision/install_base.sh"
     if install_packages
       node.vm.provision "shell", name: "install packages...", inline: script_install_packages
@@ -101,7 +74,6 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "install ripgrep...", path: "../../.assets/provision/install_ripgrep.sh"
     end
     if install_kubernetes
-      node.vm.provision "shell", name: "set ulimits on systemd", path: "../../.assets/provision/set_ulimits.sh"
       node.vm.provision "shell", name: "install yq...", path: "../../.assets/provision/install_yq.sh"
       node.vm.provision "shell", name: "install docker...", path: "../../.assets/provision/install_docker.sh"
       node.vm.provision "shell", name: "install kubectl...", path: "../../.assets/provision/install_kubectl.sh"
@@ -118,8 +90,11 @@ Vagrant.configure("2") do |config|
     end
     if install_gnome
       node.vm.provision "shell", name: "install Gnome...", path: "../../.assets/provision/install_gnome.sh"
-      node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
-      node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+      # node.vm.provision "shell", name: "set up Gnome...", path: "../../.assets/provision/setup_gnome.sh", privileged: false
+      # node.vm.provision "shell", name: "install xrdp...", path: "../../.assets/provision/install_xrdp.sh"
+      if install_edge
+        node.vm.provision "shell", name: "install Edge...", path: "../../.assets/provision/install_edge.sh"
+      end
     end
     if setup_bash || setup_pwsh
       node.vm.provision "file", source: "../../.assets/config", destination: "/tmp/"
@@ -139,6 +114,8 @@ Vagrant.configure("2") do |config|
       node.vm.provision "shell", name: "upgrade system...", path: "../../.assets/provision/upgrade_system.sh"
     end
     # ~reload vm
-    node.vm.provision :reload
+    if reload
+      node.vm.provision :reload
+    end
   end
 end
