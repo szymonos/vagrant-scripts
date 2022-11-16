@@ -4,13 +4,14 @@ sudo .assets/provision/install_kubectl.sh
 '
 
 APP='kubectl'
+REL=$1
 while [[ -z "$REL" ]]; do
   REL=$(curl -Lsk https://dl.k8s.io/release/stable.txt)
   [ -n "$REL" ] || echo 'retrying...'
 done
 
-if type $APP &>/dev/null; then
-  VER=$(kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
+if [ -f /usr/bin/kubectl ]; then
+  VER=$(/usr/bin/kubectl version --client -o yaml | grep -Po '(?<=gitVersion: )v[\d\.]+$')
   if [ "$REL" = "$VER" ]; then
     echo -e "\e[36m$APP $VER is already latest\e[0m"
     exit 0
