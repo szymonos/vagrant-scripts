@@ -2,20 +2,20 @@
 # vi: set ft=ruby :
 
 # *Variables
-box      = "generic/fedora37"
+box      = "generic/ubuntu2204"
 provider = "libvirt"
-boxname  = "fedora"
+boxname  = "ubuntu"
 # network configuration
 net_name = "vagrant-33"
-ip_addr  = "192.168.33.57"
+ip_addr  = "192.168.33.54"
 # vm configuration
-memory   = 8192
+memory   = 4096
 cpu      = 4
 # conditions
 install_packages   = true
-install_kubernetes = true
-install_gnome      = true
-install_edge       = true
+install_kubernetes = false
+install_gnome      = false
+install_edge       = false
 setup_bash         = true
 setup_pwsh         = true
 upgrade_system     = true
@@ -25,17 +25,21 @@ hostname = "vg-#{boxname.downcase}"
 
 # *Scripts
 script_install_packages = <<~SCRIPT
-  dnf install -y \\
-    @development-tools \\
-    fedora-workstation-repositories \\
-    dnf-plugins-core 'dnf-command(offline-upgrade)' \\
-    btop nano
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y btop nano
 SCRIPT
 
 script_configure_static_ip = <<~SCRIPT
-  nmcli connection modify 'Wired connection 1' \\
-    ipv4.method manual \\
-    ipv4.addresses #{ip_addr}/24
+  cat <<'EOF' >/etc/netplan/50-vagrant.yaml
+  ---
+  network:
+    version: 2
+    renderer: networkd
+    ethernets:
+      eth1:
+        addresses: [#{ip_addr}/24]
+  EOF
+  netplan generate
 SCRIPT
 
 # *VM provisioning

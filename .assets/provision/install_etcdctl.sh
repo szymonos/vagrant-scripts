@@ -4,8 +4,10 @@ sudo .assets/provision/install_etcdctl.sh
 '
 
 APP='etcdctl'
-while [[ -z $REL ]]; do
+REL=$1
+while [[ -z "$REL" ]]; do
   REL=$(curl -sk https://api.github.com/repos/etcd-io/etcd/releases/latest | grep -Po '"tag_name": *"v\K.*?(?=")')
+  [ -n "$REL" ] || echo 'retrying...'
 done
 
 if type $APP &>/dev/null; then
