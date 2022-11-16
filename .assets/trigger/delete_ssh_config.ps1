@@ -1,4 +1,4 @@
-#!/usr/bin/pwsh -nop
+#!/usr/bin/env -S pwsh -nop
 <#
 .SYNOPSIS
 Clean up ssh config and remove entries from known_hosts on destroy.
