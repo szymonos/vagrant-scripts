@@ -1,8 +1,10 @@
 <#
 .SYNOPSIS
 Script synopsis.
+.PATH
+Path to the Vagrantfile.
 .EXAMPLE
-$Path = 'hyperv/FedoraHV/Vagrantfile'
+$Path = 'hyperv/fedora/Vagrantfile'
 .assets/scripts/add_ssl_certificate.ps1 -p $Path
 #>
 
@@ -10,6 +12,7 @@ $Path = 'hyperv/FedoraHV/Vagrantfile'
 [OutputType([System.Void])]
 param (
     [Parameter()]
+    [ValidateScript({ Test-Path $_ -PathType 'Leaf' })]
     [string]$Path
 )
 
@@ -44,13 +47,14 @@ esac
 "@
 }
 
-$scriptInstallRootCA = '.tmp/script_install_root_ca.sh'
+$scriptInstallRootCA = [IO.Path]::Combine($PWD, '.tmp', 'script_install_root_ca.sh')
 # *Content of specified Vagrantfile
+$Path = Resolve-Path $Path
 $content = [IO.File]::ReadAllLines($Path)
 
 # create installation script
 if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
-    New-Item (Split-Path $scriptInstallRootCA) -ItemType Directory -ErrorAction SilentlyContinue
+    New-Item (Split-Path $scriptInstallRootCA) -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
     $chain = (Out-Null | openssl s_client -showcerts -connect www.google.com:443 2>$null) -join "`n"
     $crt = ($chain | Select-String '-{5}BEGIN [\S\n]+ CERTIFICATE-{5}' -AllMatches).Matches.Value[-1]
     # save certificate installation file
@@ -58,7 +62,7 @@ if (-not (Test-Path $scriptInstallRootCA -PathType Leaf)) {
 }
 
 # add cert installation shell command to Vagrantfile
-if (-not ($content | Select-String $scriptInstallRootCA)) {
+if (-not ($content | Select-String 'script_install_root_ca.sh')) {
     $idx = "$($content -match '# node provision')".IndexOf('#')
     $content = $content -replace '(# node provision)', "`$1`n$(' ' * $idx)node.vm.provision 'shell', name: 'install Root CA...', path: '../../.tmp/script_install_root_ca.sh'"
     # save updated Vagrantfile
