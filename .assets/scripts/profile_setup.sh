@@ -35,6 +35,7 @@ sudo .assets/provision/install_base.sh
 if [[ "$scope" = @(k8s_basic|k8s_full) ]]; then
   echo -e "\e[32minstalling kubernetes base packages...\e[0m"
   sudo .assets/provision/install_kubectl.sh
+  sudo .assets/provision/install_kubelogin.sh
   sudo .assets/provision/install_helm.sh
   sudo .assets/provision/install_minikube.sh
   sudo .assets/provision/install_k3d.sh
@@ -55,6 +56,7 @@ if [[ "$scope" = @(base|k8s_basic|k8s_full) ]]; then
   sudo .assets/provision/install_bat.sh
   sudo .assets/provision/install_exa.sh
   sudo .assets/provision/install_ripgrep.sh
+  .assets/provision/install_miniconda.sh
   echo -e "\e[32msetting up profile for all users...\e[0m"
   sudo .assets/provision/setup_omp.sh --theme_font $theme_font
   sudo .assets/provision/setup_profiles_allusers.sh
