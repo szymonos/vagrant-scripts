@@ -13,8 +13,8 @@ When GH repositories cloning is used, you need to generate and add an SSH key to
 .PARAMETER Distro
 Name of the WSL distro to set up. If not specified, script will update all existing distros.
 .PARAMETER OmpTheme
-Choose if oh-my-posh prompt theme should use base or powerline fonts.
-Available values: 'base', 'powerline'
+Specify oh-my-posh theme to be installed, from themes available on the page.
+There are also two baseline profiles included: base and powerline.
 .PARAMETER GtkTheme
 Specify gtk theme for wslg.
 Available values: 'light', 'dark'
@@ -62,7 +62,6 @@ param (
     [Parameter(ParameterSetName = 'Update')]
     [Parameter(ParameterSetName = 'Setup')]
     [Parameter(ParameterSetName = 'GitHub')]
-    [ValidateSet('base', 'powerline')]
     [string]$OmpTheme = 'base',
 
     [Alias('g')]
@@ -93,11 +92,7 @@ param (
 
 begin {
     # *get list of distros
-    # change temporarily encoding to utf-16 to match wsl output
-    [Console]::OutputEncoding = [System.Text.Encoding]::Unicode
-    [string[]]$distros = (wsl.exe --list --quiet) -notmatch '^docker-'
-    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-
+    [string[]]$distros = (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss).ForEach({ $_.GetValue('DistributionName') }).Where({ $_ -notmatch '^docker-desktop' })
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
         if ($Distro -notin $distros) {
             Write-Warning "The specified distro does not exist ($Distro)."
@@ -158,12 +153,12 @@ process {
                 wsl.exe --distribution $Distro --exec .assets/provision/install_miniconda.sh
                 # *setup profiles
                 Write-Host 'setting up profile for all users...' -ForegroundColor Green
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme_font $OmpTheme
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.ps1
-                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profiles_allusers.sh
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_omp.sh --theme $OmpTheme
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.ps1
+                wsl.exe --distribution $Distro --user root --exec .assets/provision/setup_profile_allusers.sh
                 Write-Host 'setting up profile for current user...' -ForegroundColor Green
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.ps1
-                wsl.exe --distribution $Distro --exec .assets/provision/setup_profiles_user.sh
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.ps1
+                wsl.exe --distribution $Distro --exec .assets/provision/setup_profile_user.sh
                 if ($PSModules) {
                     if (-not (Test-Path '../ps-modules' -PathType Container)) {
                         # clone ps-modules repository if not exists
