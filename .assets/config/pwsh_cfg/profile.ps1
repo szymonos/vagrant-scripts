@@ -26,9 +26,6 @@ Set-PSReadLineKeyHandler -Key Ctrl+LeftArrow -Function BackwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function ForwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+v -Function Paste
 Set-PSReadLineKeyHandler -Key Alt+Delete -Function DeleteLine
-# set Startup Working Directory variable
-$SWD = $PWD.Path
-function cds { Set-Location $SWD }
 #endregion
 
 #region environment variables and aliases
@@ -37,6 +34,7 @@ function cds { Set-Location $SWD }
 # $PATH variable
 @(
     [IO.Path]::Combine($HOME, '.local', 'bin')
+    [IO.Path]::Combine($HOME, '.cargo', 'bin')
 ).ForEach{
     if ((Test-Path $_) -and $env:PATH -NotMatch "$_/?($([IO.Path]::PathSeparator)|$)") {
         [Environment]::SetEnvironmentVariable('PATH', [string]::Join([IO.Path]::PathSeparator, $_, $env:PATH))
