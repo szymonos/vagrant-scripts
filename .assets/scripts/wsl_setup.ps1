@@ -52,6 +52,8 @@ $PSModules = @(
 .assets/scripts/wsl_setup.ps1 $Distro -a $Account -r $Repos -o $OmpTheme -g $GtkTheme -s $Scope -m $PSModules
 ~update all existing WSL distros
 .assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme -m $PSModules
+# fix network, add certificates and update all distros
+.assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme -m $PSModules -FixNetwork -AddCertificate
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -75,6 +77,16 @@ param (
     [Parameter(ParameterSetName = 'GitHub')]
     [ValidateSet('none', 'base', 'k8s_basic', 'k8s_full')]
     [string]$Scope = 'base',
+
+    [Parameter(ParameterSetName = 'Update')]
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [switch]$FixNetwork,
+
+    [Parameter(ParameterSetName = 'Update')]
+    [Parameter(ParameterSetName = 'Setup')]
+    [Parameter(ParameterSetName = 'GitHub')]
+    [switch]$AddCertificate,
 
     [Alias('a')]
     [Parameter(Mandatory, ParameterSetName = 'GitHub')]
@@ -107,11 +119,20 @@ begin {
 
 process {
     foreach ($Distro in $distros) {
+        # *fix WSL networking
+        if ($FixNetwork) {
+            .assets/scripts/wsl_network_fix.ps1 $Distro
+        }
+        # *install certificates
+        if ($AddCertificate) {
+            .assets/scripts/wsl_certs_add.ps1 $Distro
+        }
         # *install packages
         if ($PsCmdlet.ParameterSetName -eq 'Update') {
             $Scope = wsl.exe -d $distro --exec bash -c "[ -f /usr/bin/bat ] && ([ -f /usr/bin/kubectl ] && ([ -f /usr/local/bin/kubeseal ] && echo 'k8s_full' || echo 'k8s_basic') || echo 'base') || echo 'none'"
         }
         Write-Host "$distro - $Scope" -ForegroundColor Magenta
+        wsl.exe --distribution $Distro --user root --exec .assets/provision/fix_secure_path.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/upgrade_system.sh
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_base.sh
         if (wsl.exe --distribution $Distro -- bash -c 'curl https://www.google.com 2>&1 | grep -q "(60) SSL certificate problem" && echo 1') {
