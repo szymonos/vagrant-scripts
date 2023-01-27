@@ -6,16 +6,19 @@ function git_current_branch {
 function git_resolve_branch {
   case "$1" in
   '')
-    pattern='(^|/)dev(|el|elop)$|(^|/)ma(in|ster)$'
+    pattern='(^|/)dev(|el|elop|elopment)$|(^|/)ma(in|ster)$|(^|/)trunk$'
     ;;
   d)
-    pattern='(^|/)dev(|el|elop)$'
+    pattern='(^|/)dev(|el|elop|elopment)$'
     ;;
   m)
     pattern='(^|/)ma(in|ster)$'
     ;;
-  q)
-    pattern='(^|/)qa|stage$'
+  s)
+    pattern='(^|/)stage$'
+    ;;
+  t)
+    pattern='(^|/)trunk$'
     ;;
   *)
     pattern="$1"
