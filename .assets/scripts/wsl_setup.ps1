@@ -39,13 +39,13 @@ $Scope     = 'k8s_basic'
 $PSModules = @('do-common', 'do-linux')
 $Repos     = @('szymonos/vagrant', 'szymonos/ps-modules')
 ~install packages and setup profile
-.assets/scripts/wsl_setup.ps1 $Distro -o $OmpTheme -g $GtkTheme -s $Scope -m $PSModules
+.assets/scripts/wsl_setup.ps1 $Distro -g $GtkTheme -m $PSModules -o $OmpTheme -s $Scope
 ~install packages, setup profiles and clone GitHub repositories
-.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -o $OmpTheme -g $GtkTheme -s $Scope -m $PSModules
+.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -g $GtkTheme -m $PSModules -o $OmpTheme -s $Scope
 ~update all existing WSL distros
-.assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme -m $PSModules
+.assets/scripts/wsl_setup.ps1 -g $GtkTheme -m $PSModules -o $OmpTheme
 # fix network, add certificates and update all distros
-.assets/scripts/wsl_setup.ps1 -o $OmpTheme -g $GtkTheme -m $PSModules -AddCertificate -FixNetwork
+.assets/scripts/wsl_setup.ps1 -g $GtkTheme -m $PSModules -o $OmpTheme -AddCertificate -FixNetwork
 #>
 [CmdletBinding(DefaultParameterSetName = 'Update')]
 param (
@@ -176,7 +176,7 @@ process {
                         git clone $remote ../ps-modules
                     }
                     # *install PowerShell modules from ps-modules repository
-                    Write-Host 'installing PowerShell modules...' -ForegroundColor Cyan
+                    Write-Host 'installing ps-modules...' -ForegroundColor Cyan
                     foreach ($module in $PSModules) {
                         if ($module -eq 'do-common') {
                             wsl.exe --distribution $Distro --user root --exec ../ps-modules/module_manage.ps1 $module -CleanUp
