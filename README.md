@@ -10,7 +10,7 @@ Depending on the use case you can use scripts in the repository for different sc
 
 ### Windows Subsystem for Linux (WSL)
 
-To set up the distro from scratch, run the [wsl/wsl_setup.ps1](wsl/wsl_setup.ps1) script, following the examples included in the script.  
+To set up the distro from scratch, run the [.assets/scripts/wsl_setup.ps1](.assets/scripts/wsl_setup.ps1) script, following the examples included in the script.  
 For more detailed instructions about setting up the WSL read the [WSL Setup Guideline](docs/wsl_setup.md).  
 To learn about other WSL management scripts, please read the [Other WSL scripts](docs/wsl_scripts.md) page.
 
