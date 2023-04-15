@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : '
-sudo .assets/provision/install_npm.sh
+sudo .assets/provision/install_podman.sh
 '
 if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
@@ -10,7 +10,7 @@ fi
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
 # check if package installed already using package manager
-APP='npm'
+APP='distrobox'
 case $SYS_ID in
 alpine)
   apk -e info $APP &>/dev/null && exit 0 || true
@@ -31,13 +31,14 @@ alpine)
   apk add --no-cache $APP
   ;;
 arch)
-  pacman -Sy --needed --noconfirm icu $APP
+  sudo -u $(id -un 1000) paru -Sy --needed --noconfirm $APP
   ;;
 fedora)
   dnf install -y $APP
   ;;
 debian | ubuntu)
   export DEBIAN_FRONTEND=noninteractive
+  add-apt-repository -y ppa:michel-slm/distrobox
   apt-get update && apt-get install -y $APP
   ;;
 opensuse)

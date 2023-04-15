@@ -2,15 +2,30 @@
 : '
 sudo .assets/provision/setup_python.sh
 '
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo -e '\e[91mRun the script as root!\e[0m'
   exit 1
 fi
 
-echo -e "\e[92minstalling python pip & virtualenv\e[0m" >&2
 # determine system id
 SYS_ID=$(grep -oPm1 '^ID(_LIKE)?=.*?\K(alpine|arch|fedora|debian|ubuntu|opensuse)' /etc/os-release)
+# check if package installed already using package manager
+case $SYS_ID in
+alpine)
+  apk -e info py3-pip &>/dev/null && exit 0 || true
+  ;;
+arch)
+  pacman -Qqe python-pip &>/dev/null && exit 0 || true
+  ;;
+fedora | opensuse)
+  rpm -q python3-pip &>/dev/null && exit 0 || true
+  ;;
+debian | ubuntu)
+  dpkg -s python3-pip &>/dev/null && exit 0 || true
+  ;;
+esac
 
+echo -e "\e[92minstalling python pip & virtualenv\e[0m" >&2
 # install packages
 case $SYS_ID in
 alpine)
@@ -32,4 +47,4 @@ opensuse)
 esac
 
 # create python symbolic link
-[[ -f /usr/bin/python3 ]] && [[ -f /usr/bin/python ]] || ln -s /usr/bin/python3 /usr/bin/python
+[[ ! -f /usr/bin/python && -f /usr/bin/python3 ]] && ln -s /usr/bin/python3 /usr/bin/python || true
