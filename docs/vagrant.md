@@ -52,12 +52,12 @@ To provision any box using provided Vagrantfiles you need to have:
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
     ```
 
-    > Hyper-V will offer better performance than VirtualBox as it is Type 1 hypervisor and will offer best experience when using along with WSL and I recommend using it over VirtualBox.
+    > Hyper-V will offer better performance than VirtualBox as it is type 1 hypervisor and will offer best experience when using along with  the WSL.
 
   - *VirtualBox*
 
     ``` powershell
-    winget install --id Hashicorp.Vagrant
+    winget install --id Oracle.VirtualBox
     ```
 
     > VirtualBox is Type 2 hypervisor and offers worse performance than Hyper-V, but is available cross platform and easier to use for desktop purposes.

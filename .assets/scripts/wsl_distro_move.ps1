@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
 Move (and optionally rename) existing WSL2 distro.
+
 .PARAMETER Distro
 Name of the existing WSL distro.
 .PARAMETER Destination
@@ -12,8 +13,8 @@ Optional new name of the WSL distro.
 $Distro = 'Ubuntu'
 $Destination = 'C:\VM\WSL'
 $NewName = 'jammy'
-.assets/scripts/wsl_move.ps1 $Distro -d $Destination -n $NewName
-.assets/scripts/wsl_move.ps1 $Distro -d $Destination -n $NewName -WhatIf
+.assets/scripts/wsl_distro_move.ps1 $Distro -d $Destination -n $NewName
+.assets/scripts/wsl_distro_move.ps1 $Distro -d $Destination -n $NewName -WhatIf
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param (
