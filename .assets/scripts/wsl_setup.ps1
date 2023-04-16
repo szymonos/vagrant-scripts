@@ -165,7 +165,7 @@ process {
         # separate log for multpiple distros update
         Write-Host "$($Distro -eq $distros[0] ? '': "`n")" -NoNewline
         # display distro name and installed scopes
-        Write-Host "$distro$($Scope ? " : `e[3m$Scope`e[23m" : '')" -ForegroundColor Magenta
+        Write-Host "$distro$($Scope ? " : `e[3m$Scope`e[0m" : '')" -ForegroundColor Magenta
         # *fix WSL networking
         if ($FixNetwork) {
             .assets/scripts/wsl_network_fix.ps1 $Distro
