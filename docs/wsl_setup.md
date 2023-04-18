@@ -62,10 +62,13 @@ To set up distro using the specified scopes you need to run the command:
 ### Set up distro with oh-my-posh prompt theme engine
 
 You can opt to use a very powerful oh-my-posh prompt theme engine, by specifying `-OmpTheme` parameter with the name of the theme.
-To use the engine you also need to specify the `shell` scope, to configure oh-my-posh in the shell profiles.
+
+To utilize oh-my-posh theme, the `shell` scope is required to modify shell profiles, but you don't have to specify it, as it will be
+automatically added for the **full shell experience**.
 
 ``` powershell
-.assets/scripts/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base' -Scope 'shell'
+# you can omit the shell scope, as it will be added automatically when OmpTheme is specified
+.assets/scripts/wsl_setup.ps1 'Ubuntu' -OmpTheme 'base'
 ```
 
 There are three themes included in the repository:
