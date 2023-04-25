@@ -39,13 +39,11 @@ The script can be used to set up an already provisioned Linux OS, it may be a ba
 │   │   ├── omp_cfg     # oh-my-posh themes
 │   │   └── pwsh_cfg    # PowerShell profile and aliases functions
 │   ├── config        # bash and PowerShell profiles along the themes, aliases, etc...
-│   ├── docker        # dockerfiles
 │   ├── playbooks     # ansible playbooks
 │   ├── provision     # scripts used during vm provisioning for apps install, os setup, etc...
 │   ├── scripts       # other scripts not used for setting up VMs or WSLs.
 │   ├── tools         # tools scripts not related to Linux provisioning
 │   └── trigger       # scripts used externally to setup the VM in hypervisor, etc...
-├── .github         # GitHub Actions
 ├── docs            # repository documentation
 └── vagrant         # Vagrant configuration files
     ├── hyperv        # Hyper-V provider VM deployments
