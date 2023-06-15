@@ -19,7 +19,7 @@ $Distro = 'Ubuntu'
 .assets/scripts/wsl_network_fix.ps1 $Distro -Shutdown
 .assets/scripts/wsl_network_fix.ps1 $Distro -DisableSwap
 .assets/scripts/wsl_network_fix.ps1 $Distro -Shutdown -DisableSwap
-# ~revert changes
+# :revert changes
 .assets/scripts/wsl_network_fix.ps1 $Distro -Revert -Shutdown
 #>
 
