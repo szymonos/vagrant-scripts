@@ -11,14 +11,14 @@ Windows Subsystem for Linux is a very convenient technology to use Linux OS on W
 
 ## Prerequisites
 
-You can install all the required features/tools using the terminal:
+You can install all the required features/tools by running below commands in terminal:
 
 ``` powershell
 # Windows Subsystem for Linux - may require rebooting the system afterwards
 wsl --install
 
-# PowerShell Core - WSL provisioning scripts in the repository require the PowerShell Core to be executed
-winget install --id Microsoft.PowerShell
+# PowerShell Core - WSL provisioning scripts need to be executed in PowerShell Core
+wsl/pwsh_setup.ps1
 
 # Git distributed version control system
 winget install --id Git.Git
@@ -81,11 +81,11 @@ automatically added for the **full shell experience**.
 
 There are three themes included in the repository:
 
-- `base` - using standard, preinstalled fonts
+- `base` - using standard, preinstalled fonts  
   ![omp_base.png](images/omp_base.png)
-- `powerline` - using extended, powerline fonts, e.g. **Cascadia Code PL** fonts, to be downloaded from [microsoft/cascadia-code](https://github.com/microsoft/cascadia-code)
+- `powerline` - using extended, powerline fonts, e.g. **Cascadia Code PL** fonts, to be downloaded from [microsoft/cascadia-code](https://github.com/microsoft/cascadia-code)  
   ![omp_base.png](images/omp_powerline.png)
-- `nerd` - using nerd fonts - can be downloaded manually from [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts) or installed using the script [install_fonts_nerd.ps1](../.assets/scripts/install_fonts_nerd.ps1)
+- `nerd` - using nerd fonts - can be downloaded manually from [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts) or installed using the script [install_fonts_nerd.ps1](../.assets/scripts/nerd_fonts_install.ps1)  
   ![omp_base.png](images/omp_nerd.png)
 
 You can also specify any other theme name from [Themes | Oh My Posh](https://ohmyposh.dev/docs/themes) - it will be downloaded and installed automatically during the provisioning.
