@@ -52,12 +52,17 @@ $Distro = 'Ubuntu'
 .assets/scripts/wsl_setup.ps1 $Distro -AddCertificate
 .assets/scripts/wsl_setup.ps1 $Distro -FixNetwork -AddCertificate
 # :set up WSL distro using specified values
+$Scope = @('az', 'python', 'shell')
 $Scope = @('az', 'docker', 'k8s_base', 'k8s_ext', 'python', 'shell')
+.assets/scripts/wsl_setup.ps1 $Distro -s $Scope
+.assets/scripts/wsl_setup.ps1 $Distro -s $Scope -AddCertificate
 $OmpTheme = 'nerd'
 .assets/scripts/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme
+.assets/scripts/wsl_setup.ps1 $Distro -s $Scope -o $OmpTheme -AddCertificate
 # :set up WSL distro and clone specified GitHub repositories
 $Repos = @('szymonos/vagrant-scripts', 'szymonos/ps-modules')
 .assets/scripts/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme
+.assets/scripts/wsl_setup.ps1 $Distro -r $Repos -s $Scope -o $OmpTheme -AddCertificate
 # :update all existing WSL distros
 .assets/scripts/wsl_setup.ps1
 #>
@@ -111,15 +116,21 @@ begin {
     $ErrorActionPreference = 'Stop'
 
     # *get list of distros
-    [string[]]$distros = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
-    | ForEach-Object { $_.GetValue('DistributionName') } `
-    | Where-Object { $_ -notmatch '^docker-desktop' }
+    $lxss = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
+    | ForEach-Object { $_ | Get-ItemProperty } `
+    | Where-Object { $_.DistributionName -notmatch '^docker-desktop' } `
+    | Select-Object DistributionName, DefaultUid, @{ N = 'Version'; E = { $_.Flags -lt 8 ? 1 : 2 } }
     if ($PsCmdlet.ParameterSetName -ne 'Update') {
-        if ($Distro -notin $distros) {
+        if ($Distro -in $lxss.DistributionName) {
+            $lxss = $lxss.Where({ $_.DistributionName -eq $Distro })
+        } else {
             Write-Warning "The specified distro does not exist ($Distro)."
             exit
         }
-        [string[]]$distros = $Distro
+    } else {
+        Write-Host "Found $($lxss.Count) distro$($lxss.Count -eq 1 ? '' : 's') to update." -ForegroundColor White
+        $lxss.DistributionName.ForEach({ Write-Host "- $_" })
+        $lxss.Count ? '' : $null
     }
 
     # determine GTK theme if not provided, based on system theme
@@ -135,7 +146,8 @@ begin {
 }
 
 process {
-    foreach ($Distro in $distros) {
+    foreach ($lx in $lxss) {
+        $Distro = $lx.DistributionName
         # *perform distro checks
         $cmd = [string]::Join('',
             '[ -f /usr/bin/pwsh ] && shell="true" || shell="false";',
@@ -166,9 +178,9 @@ process {
             @('oh_my_posh', 'shell').ForEach({ $scopes.Add($_) | Out-Null })
         }
         # separate log for multpiple distros update
-        Write-Host "$($Distro -eq $distros[0] ? '': "`n")" -NoNewline
+        Write-Host "$($Distro -eq $lxss.DistributionName[0] ? '': "`n")" -NoNewline
         # display distro name and installed scopes
-        Write-Host "$distro$($scopes ? " : `e[3m$scopes`e[23m" : '')" -ForegroundColor Magenta
+        Write-Host "$Distro$($scopes ? " : `e[3m$scopes`e[23m" : '')" -ForegroundColor Magenta
         # *fix WSL networking
         if ($FixNetwork) {
             Write-Host 'fixing network...' -ForegroundColor Cyan
@@ -329,22 +341,51 @@ process {
     }
 
     if ($PsCmdlet.ParameterSetName -eq 'GitHub') {
-        # *setup GitHub repositories
-        Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
-        # set git eol config
-        wsl.exe --distribution $Distro --exec bash -c 'git config --global core.eol lf && git config --global core.autocrlf input'
-        # install GitHub CLI
+        # *install GitHub CLI
         wsl.exe --distribution $Distro --user root --exec .assets/provision/install_gh.sh
-        # copy git user settings from the host
-        $gitConfigCmd = (git config --list --global 2>$null | Select-String '^user\b').ForEach({
-                $split = $_.Line.Split('=')
-                "git config --global $($split[0]) '$($split[1])'"
+
+        # *setup git config
+        $builder = [System.Text.StringBuilder]::new()
+        # set up git author identity
+        $gitConfig = git config --list --global 2>$null | Select-String '^user\b' -Raw
+        if ($gitConfig) {
+            foreach ($cfg in $gitConfig) {
+                $setting, $value = $cfg.Split('=')
+                $builder.AppendLine("git config --global $setting '$value'") | Out-Null
             }
-        ) -join ' && '
-        if ($gitConfigCmd) {
-            wsl.exe --distribution $Distro --exec bash -c $gitConfigCmd
+        } else {
+            Write-Warning 'Git author identity unknown.'
+            do {
+                $user = Read-Host -Prompt 'provide git user name'
+            } until ($user)
+            $builder.AppendLine("git config --global user.name '$user'") | Out-Null
+            do {
+                $email = Read-Host -Prompt 'provide git email'
+            } until ($email -match '\S+@\S+')
+            $builder.AppendLine("git config --global user.email '$email'") | Out-Null
         }
-        # clone repos
+        # setup eol/crlf settings
+        $builder.AppendLine('git config --global core.eol lf') | Out-Null
+        $builder.AppendLine('git config --global core.autocrlf input') | Out-Null
+        wsl.exe --distribution $Distro --exec bash -c $builder.ToString().Trim()
+
+        # *check ssh keys and create if necessary
+        if (-not (Test-Path "$HOME/.ssh/id_*")) {
+            ssh-keygen -t ecdsa -b 521 -f "$HOME/.ssh/id_ecdsa" -q -N ''
+            $idPub = Get-ChildItem "$HOME/.ssh/id_ecdsa.pub" | Select-Object -First 1 | Get-Content
+            if ($idPub) {
+                Write-Host 'Copy below public key and add to SSH keys on "https://github.com/settings/keys".' -ForegroundColor White
+                Write-Host "`nTitle:" -ForegroundColor Cyan
+                Write-Host $idPub.Split()[-1]
+                Write-Host "`nKey:" -ForegroundColor Cyan
+                Write-Host $idPub
+                Write-Host "`nPress any key to continue"
+                [System.Console]::ReadKey() | Out-Null
+            }
+        }
+
+        # *clone GitHub repositories
+        Write-Host 'cloning GitHub repositories...' -ForegroundColor Cyan
         wsl.exe --distribution $Distro --exec .assets/provision/setup_gh_repos.sh --repos "$Repos" --user $env:USERNAME
     }
 }
