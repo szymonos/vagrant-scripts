@@ -47,6 +47,7 @@ if [ -z "$array" ]; then
   [ -f /usr/bin/kubectl ] && array+=(k8s_base) || true
   [ -f /usr/bin/kustomize ] && array+=(k8s_ext) || true
   [ -f /usr/bin/pwsh ] && array+=(shell) || true
+  [ -d "$HOME/miniconda3" ] && array+=(python) || true
 fi
 # add oh_my_posh scope if necessary
 if [[ -n "$omp_theme" || -f /usr/bin/oh-my-posh ]]; then
@@ -104,7 +105,7 @@ for sc in ${scope_arr[@]}; do
     ;;
   python)
     printf "\e[96minstalling python packages...\e[0m\n"
-    .assets/provision/install_miniconda.sh
+    .assets/provision/install_miniconda.sh --fix_certify true
     sudo .assets/provision/setup_python.sh
     grep -qw 'az' <<<$scope && .assets/provision/install_azurecli.sh --fix_certify true || true
     ;;
@@ -138,24 +139,28 @@ if [ -f /usr/bin/pwsh ]; then
   [ -f /usr/bin/kubectl ] && modules+=(aliases-kubectl) || true
   if [[ -n "$modules" && -f /usr/bin/git ]]; then
     printf "\e[96minstalling ps-modules...\e[0m\n"
-    # determine if ps-modules repository exist and clone if necessary
-    origin="$(git config --get remote.origin.url)"
-    remote=${origin/vagrant-scripts/ps-modules}
-    if [ -d ../ps-modules ]; then
-      pushd ../ps-modules >/dev/null
-      if echo $remote | grep -Fqw 'szymonos/ps-modules.git'; then
-        git fetch -q && git reset --hard -q "origin/$(git branch --show-current)"
+    target_repo='ps-modules'
+    # determine if target repository exists and clone if necessary
+    get_origin='git config --get remote.origin.url'
+    if [ -d "../$target_repo" ]; then
+      pushd "../$target_repo" >/dev/null
+      if eval $get_origin | grep -qw "github\.com[:/]szymonos/$target_repo"; then
+        git fetch --prune --quiet
+        git switch main --force --quiet
+        git reset --hard --quiet origin/main
       else
+        printf "\e[93manother \"$target_repo\" repository exists\e[0m\n"
         modules=()
       fi
       popd >/dev/null
     else
-      git clone $remote ../ps-modules
+      remote=$(eval $get_origin | sed "s/\([:/]szymonos\/\).*/\1$target_repo.git/")
+      git clone $remote "../$target_repo"
     fi
     # install do-common module for all users
     if grep -qw 'do-common' <<<$ps_modules; then
       printf "\e[3;32mAllUsers\e[23m    : do-common\e[0m\n"
-      sudo ../ps-modules/module_manage.ps1 'do-common' -CleanUp
+      sudo ../$target_repo/module_manage.ps1 'do-common' -CleanUp
     fi
     # install rest of the modules for the current user
     modules=(${modules[@]/do-common/})
@@ -166,7 +171,7 @@ if [ -f /usr/bin/pwsh ]; then
       for element in "${modules[@]}"; do
         mods="$mods'$element',"
       done
-      pwsh -nop -c "@(${mods%,}) | ../ps-modules/module_manage.ps1 -CleanUp"
+      pwsh -nop -c "@(${mods%,}) | ../$target_repo/module_manage.ps1 -CleanUp"
     fi
   fi
 fi
