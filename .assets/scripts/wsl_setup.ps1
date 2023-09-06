@@ -114,6 +114,11 @@ param (
 
 begin {
     $ErrorActionPreference = 'Stop'
+    # check if the script is running on Windows
+    if (-not $IsWindows) {
+        Write-Warning 'Run the script on Windows!'
+        exit 0
+    }
 
     # *get list of distros
     $lxss = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss `
@@ -291,7 +296,7 @@ process {
         # *install PowerShell modules from ps-modules repository
         if ($chk.shell) {
             # instantiate psmodules generic lists
-            $modules = [Collections.Generic.HashSet[String]]::new()
+            $modules = [System.Collections.Generic.HashSet[String]]::new()
             $PSModules.ForEach({ $modules.Add($_) | Out-Null })
 
             # determine modules to install
@@ -317,14 +322,18 @@ process {
                     git switch main --force --quiet 2>$null
                     git reset --hard --quiet origin/main
                 } else {
-                    $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
                     Write-Warning "Another `"$targetRepo`" repository exists."
                     $modules = [System.Collections.Generic.HashSet[string]]::new()
                 }
                 Pop-Location
             } catch {
+                $remote = (Invoke-Command $getOrigin) -replace '([:/]szymonos/)[\w-]+', "`$1$targetRepo"
                 # clone target repository
                 git clone $remote "../$targetRepo"
+                if (-not $?) {
+                    Write-Warning "Cloning of the `"$targetRepo`" repository failed."
+                    $modules = [System.Collections.Generic.HashSet[string]]::new()
+                }
             }
             Write-Host 'installing ps-modules...' -ForegroundColor Cyan
             if ('do-common' -in $modules) {
